@@ -28,15 +28,22 @@ tt-claude/
 ```bash
 git clone <repository-url> ~/workspace/tt-claude
 cd ~/workspace/tt-claude
-./setup.sh
+
+./setup.sh tt-metal
+./setup.sh tt-mlir
+./setup.sh tt-xla
 ```
 
-The setup script creates symlinks in each project's `.claude/` directory:
+The setup script will:
+1. Search for the project under `$HOME` (max depth 2)
+2. If not found, offer to clone it from GitHub
+3. Create symlinks in the project's `.claude/` directory
 
+Example output:
 ```
-~/workspace/tt-metal/.claude/skills -> ~/workspace/tt-claude/tt-metal/skills
-~/workspace/tt-mlir/.claude/skills  -> ~/workspace/tt-claude/tt-mlir/skills
-~/workspace/tt-xla/.claude/skills   -> ~/workspace/tt-claude/tt-xla/skills
+[tt-metal]
+  Found: /Users/you/workspace/tt-metal
+  [DONE] skills: Linked -> /Users/you/tt-claude/tt-metal/skills
 ```
 
 ## Skills
@@ -47,18 +54,6 @@ The setup script creates symlinks in each project's `.claude/` directory:
 |-------|-------------|
 | `ttnn-model-bringup` | Workflow for converting PyTorch models to TTNN |
 | `ttnn-model-optimization` | Performance optimization for TTNN models |
-
-## Customizing Project Paths
-
-The default project paths assume `$HOME/workspace/`. If your projects are located elsewhere, edit the `PROJECTS` array in `setup.sh`:
-
-```bash
-PROJECTS=(
-    "tt-metal:/path/to/your/tt-metal"
-    "tt-mlir:/path/to/your/tt-mlir"
-    "tt-xla:/path/to/your/tt-xla"
-)
-```
 
 ## Adding New Skills
 
