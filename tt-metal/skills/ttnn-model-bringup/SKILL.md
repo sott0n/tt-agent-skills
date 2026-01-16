@@ -1,6 +1,6 @@
 ---
 name: ttnn-model-bringup
-description: Bringing up DNN model on Tenstorrent hardware using TTNN. Covers the full workflow from reference model analysis through ttnn operator mapping, ttnn implementation, and PCC validation. Use when: bring up a ttnn model.
+description: "Bringing up DNN model on Tenstorrent hardware using TTNN. Covers the full workflow from reference model analysis through ttnn operator mapping, ttnn implementation, and PCC validation. Use when: bring up a ttnn model."
 ---
 
 # TTNN Model Bringup

@@ -1,6 +1,6 @@
 ---
 name: ttnn-model-optimization
-description: Guide for optimizing TTNN model performance on Tenstorrent hardware. Covers data formats, tensor layouts, sharding, memory management, Metal Trace, multi-CQ, Conv2d tuning, and multi-device optimization.
+description: "Guide for optimizing TTNN model performance on Tenstorrent hardware. Covers data formats, tensor layouts, sharding, memory management, Metal Trace, multi-CQ, Conv2d tuning, and multi-device optimization."
 ---
 
 # TTNN Model Optimization
