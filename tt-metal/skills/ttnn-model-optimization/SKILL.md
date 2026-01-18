@@ -27,6 +27,46 @@ This skill provides guidance for optimizing model performance after functional b
 | 6 | Conv2d Optimization | Sharding, block tuning, BN folding | `step-06-conv2d-optimization.md` |
 | 7 | Multi-Device | Scale across multiple devices | `step-07-multi-device.md` |
 
+### Choosing Optimization Path
+
+**LLM (transformers, attention-based)?**
+→ Focus on: Data formats (Step 1), Metal Trace (Step 4), Multi-CQ (Step 5)
+
+**CNN (convolutions, image models)?**
+→ Focus on: Sharding (Step 3), Conv2d optimization (Step 6), act_block_h tuning
+
+**Memory-bound?**
+→ Focus on: Memory & Sharding (Step 3), double buffering
+
+**Host dispatch overhead?**
+→ Focus on: Metal Trace (Step 4), Multi-CQ (Step 5)
+
+### Optimization Feedback Loop
+
+```
+1. Profile current performance (baseline)
+2. Apply ONE optimization
+3. Verify PCC ≥ 0.99
+4. If PCC drops → revert and try different approach
+5. Measure performance improvement
+6. Repeat until target met
+```
+
+### Progress Checklist
+
+```
+Optimization Progress:
+- [ ] Baseline performance measured
+- [ ] Step 1: Data formats optimized (bfloat8_b for weights)
+- [ ] Step 2: Tile layout configured
+- [ ] Step 3: Sharding strategy applied
+- [ ] Step 4: Metal Trace enabled
+- [ ] Step 5: Multi-CQ configured (if applicable)
+- [ ] Step 6: Conv2d tuned (if CNN)
+- [ ] Step 7: Multi-device scaling (if applicable)
+- [ ] Final PCC verified ≥ 0.99
+```
+
 ## Quick Reference
 
 - **Key Concepts**: See [key-concepts.md](key-concepts.md) for data formats, layouts, memory hierarchy, sharding, and math fidelity
