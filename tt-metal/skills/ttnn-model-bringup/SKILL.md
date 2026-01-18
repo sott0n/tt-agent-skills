@@ -83,6 +83,41 @@ Claude:
 4. Move to next step when ready
 ```
 
+### Example Interactions
+
+**Example 1: Starting bringup**
+```
+User: "I want to port BERT-base to TTNN"
+
+Claude response:
+1. Identifies model type: LLM (transformer)
+2. Reads llm-model-bringup.md for architecture specifics
+3. Starts with Step 1: helps extract operators from BERT
+   - Linear, LayerNorm, GELU, Softmax, matmul
+4. Documents shapes: [batch, seq_len, hidden_dim]
+```
+
+**Example 2: Debugging PCC failure**
+```
+User: "My LayerNorm has PCC 0.95, expected 0.999"
+
+Claude response:
+1. Reads debugging-tools.md
+2. Suggests enabling comparison mode
+3. Checks: data type mismatch? eps value? input shape alignment?
+4. Recommends testing with float32 to isolate numerical issues
+```
+
+**Example 3: Mapping unknown operator**
+```
+User: "How do I convert torch.einsum to TTNN?"
+
+Claude response:
+1. Reads ttnn-operator-mapping.md
+2. Finds einsum → ttnn.einsum (direct mapping)
+3. Notes: check equation string format compatibility
+```
+
 ## Quick Reference
 
 - **Key Concepts**: See [key-concepts.md](key-concepts.md) for tensor layouts, data types, memory configs, and PCC thresholds

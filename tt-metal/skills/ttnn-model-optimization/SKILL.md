@@ -69,6 +69,39 @@ Optimization Progress:
 3. **Read step files** for detailed optimization techniques
 4. **Test after each optimization** to verify PCC maintained
 
+### Example Interactions
+
+**Example 1: Model too slow**
+```
+User: "My ResNet inference is 50ms, target is 10ms"
+
+Claude response:
+1. Identifies model type: CNN
+2. Reads step-06-conv2d-optimization.md
+3. Checks: sharding strategy, act_block_h_override, double buffering
+4. Suggests enabling Metal Trace (step-04-metal-trace.md)
+```
+
+**Example 2: Memory optimization**
+```
+User: "Running out of L1 memory during convolution"
+
+Claude response:
+1. Reads step-03-memory-sharding.md
+2. Suggests: reduce act_block_h_override, store skip connections in DRAM
+3. Recommends memory profiling with ttnn.device.dump_device_memory_state()
+```
+
+**Example 3: Enabling Metal Trace**
+```
+User: "How do I use Metal Trace for my LLM?"
+
+Claude response:
+1. Reads step-04-metal-trace.md
+2. Provides pattern: allocate_tensor → begin_trace_capture → model() → end_trace_capture
+3. Notes constraints: no dynamic shapes, fixed compute graph
+```
+
 ## Files in This Skill
 
 ```
