@@ -1,6 +1,6 @@
 ---
 name: ttnn-model-bringup
-description: "Bringing up DNN model on Tenstorrent hardware using TTNN. Covers the full workflow from reference model analysis through ttnn operator mapping, ttnn implementation, and PCC validation. Use when: bring up a ttnn model."
+description: "Converts PyTorch models to TTNN for Tenstorrent hardware. Covers operator mapping, PCC validation, and module implementation. Use when porting PyTorch/HuggingFace models to TTNN, mapping torch operators to ttnn equivalents, debugging PCC failures, or implementing TTNN modules."
 ---
 
 # TTNN Model Bringup
