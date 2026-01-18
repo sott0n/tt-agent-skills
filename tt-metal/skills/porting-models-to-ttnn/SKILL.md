@@ -1,5 +1,5 @@
 ---
-name: ttnn-model-bringup
+name: porting-models-to-ttnn
 description: "Converts PyTorch models to TTNN for Tenstorrent hardware. Covers operator mapping, PCC validation, and module implementation. Use when porting PyTorch/HuggingFace models to TTNN, mapping torch operators to ttnn equivalents, debugging PCC failures, or implementing TTNN modules."
 ---
 

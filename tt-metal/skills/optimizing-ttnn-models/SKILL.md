@@ -1,5 +1,5 @@
 ---
-name: ttnn-model-optimization
+name: optimizing-ttnn-models
 description: "Optimizes TTNN model performance on Tenstorrent hardware. Covers data formats, sharding, Metal Trace, and multi-device scaling. Use when model runs too slow, needs memory optimization, profiling bottlenecks, tuning Conv2d, enabling Metal Trace, or scaling to multiple devices."
 ---
 
