@@ -126,7 +126,7 @@ Claude response:
 ## Files in This Skill
 
 ```
-.claude/skills/ttnn-model-bringup/
+.claude/skills/porting-models-to-ttnn/
 ├── SKILL.md                              # This file (overview)
 ├── key-concepts.md                       # Tensor layouts, data types, memory configs, PCC
 ├── debugging-tools.md                    # Comparison mode, PCC validation

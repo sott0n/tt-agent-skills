@@ -105,7 +105,7 @@ Claude response:
 ## Files in This Skill
 
 ```
-.claude/skills/ttnn-model-optimization/
+.claude/skills/optimizing-ttnn-models/
 ├── SKILL.md                        # This file
 ├── key-concepts.md                 # Data formats, layouts, memory, sharding, math fidelity
 ├── quick-reference.md              # Code examples for common patterns
