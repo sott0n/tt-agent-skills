@@ -1,5 +1,16 @@
 # Step 5: Multiple Command Queues
 
+## Contents
+- When to Use Multi-CQ
+- APIs (record_event, wait_for_event)
+- Pattern 1: Writes on CQ1, Compute+Reads on CQ0
+- Pattern 2: Compute on CQ0, I/O on CQ1
+- Combining with Metal Trace
+- Event Flow Diagram
+- TT-CNN Pipeline API
+- Performance Analysis
+- Checklist
+
 ## Objective
 
 Use multiple command queues to overlap I/O with compute operations.

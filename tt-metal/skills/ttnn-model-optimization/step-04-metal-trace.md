@@ -1,5 +1,16 @@
 # Step 4: Metal Trace Optimization
 
+## Contents
+- When to Use Metal Trace
+- APIs (begin_trace_capture, end_trace_capture, execute_trace)
+- Basic Pattern: DRAM Input
+- Advanced Pattern: L1 Input
+- Constraints and Limitations
+- Determining Trace Region Size
+- Device vs End-to-End Performance
+- TT-CNN Pipeline API
+- Checklist
+
 ## Objective
 
 Use Metal Trace to eliminate host overhead by capturing and replaying device operations.

@@ -1,6 +1,14 @@
 # CNN Model Bringup Guide
 
-This guide covers specific steps for bringing up Convolutional Neural Networks (CNNs) on Tenstorrent devices.
+## Contents
+- Prerequisites and Reference Implementation
+- CNN-Specific Considerations (HWC format, sharding)
+- CNN Operator Mapping (Conv2d, BatchNorm, Pooling)
+- Systematic Module-by-Module Bring-Up
+- Object Detection Models (YOLO-style)
+- Testing CNN Models
+- Performance Optimization
+- Checklist
 
 ## Prerequisites
 

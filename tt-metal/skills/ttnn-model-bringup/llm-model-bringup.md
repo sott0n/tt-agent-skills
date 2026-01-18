@@ -1,6 +1,13 @@
 # LLM Model Bringup Guide
 
-This guide covers specific steps for bringing up Large Language Models (LLMs) on Tenstorrent devices.
+## Contents
+- Prerequisites and Reference Implementation
+- Device Memory Considerations
+- LLM-Specific Architecture (Attention, MLP, KV Cache)
+- Systematic Component-wise Bring-Up
+- Performance Optimization (Prefill vs Decode)
+- Multi-Device Scaling (Tensor/Pipeline Parallelism)
+- Checklist
 
 ## Prerequisites
 

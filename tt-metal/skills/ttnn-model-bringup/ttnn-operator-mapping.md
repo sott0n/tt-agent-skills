@@ -1,6 +1,16 @@
 # PyTorch to TTNN Operator Mapping
 
-This document provides a mapping between PyTorch operators and their TTNN equivalents.
+## Contents
+- Neural Network Layers (Linear, Conv2d, Embedding)
+- Normalization (LayerNorm, BatchNorm, RMSNorm)
+- Activation Functions (ReLU, GELU, Sigmoid, Softmax)
+- Pooling (MaxPool, AvgPool, AdaptivePool)
+- Matrix Operations (matmul, einsum, bmm)
+- Pointwise Operations (binary, unary, comparison)
+- Reduction Operations (sum, mean, max, min)
+- Tensor Manipulation (reshape, transpose, concat)
+- Transformer Operations (attention, MLP, KV cache)
+- Loss Functions and Notes
 
 ## Neural Network Layers
 

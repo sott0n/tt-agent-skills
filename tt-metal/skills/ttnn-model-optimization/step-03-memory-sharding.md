@@ -1,5 +1,16 @@
 # Step 3: Memory and Sharding Optimization
 
+## Contents
+- Memory Types and Layouts
+- Sharding Strategies (Height, Width, Block)
+- Memory Config for Sharding
+- Reshard Operation
+- Memory Reports (debugging)
+- Double Buffering
+- Activation Block Tuning
+- Skip Connections and Concatenation
+- Best Practices and Checklist
+
 ## Objective
 
 Optimize memory layout and sharding for performance.

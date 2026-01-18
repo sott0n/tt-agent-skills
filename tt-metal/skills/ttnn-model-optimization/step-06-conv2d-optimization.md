@@ -1,5 +1,17 @@
 # Step 6: Conv2d Optimization
 
+## Contents
+- Sharding Strategies for Conv2d
+- Activation Block Tuning (act_block_h_override)
+- Double Buffering
+- Batch Norm Folding
+- Data Formats for Conv2d
+- Input Format Conversion (NHWC)
+- Reshard Minimization
+- TT-CNN Builder API
+- Performance Profiling
+- Checklist
+
 ## Objective
 
 Optimize convolution operations for vision models.
