@@ -79,53 +79,18 @@ Claude:
 4. Move to next step when ready
 ```
 
-## Key Concepts
+## Quick Reference
 
-### Tensor Layout
-- `ttnn.ROW_MAJOR_LAYOUT`: Standard row-major storage
-- `ttnn.TILE_LAYOUT`: 32x32 tile-based storage (required for most compute operations)
-
-### Data Types
-- `ttnn.bfloat16`: Default for activations
-- `ttnn.bfloat8_b`: Block floating point, good for weights (requires TILE_LAYOUT)
-- `ttnn.float32`: Higher precision when needed
-
-### Memory Configs
-- `ttnn.DRAM_MEMORY_CONFIG`: Store in DRAM (larger capacity)
-- `ttnn.L1_MEMORY_CONFIG`: Store in L1 cache (faster access)
-- `ttnn.create_sharded_memory_config()`: Distributed across cores
-
-### PCC (Pearson Correlation Coefficient)
-- >= 0.999: Excellent - target for individual operators
-- >= 0.99: Good - acceptable for modules and full model
-- < 0.99: Investigate numerical issues
-
-## Debugging Tools
-
-### Comparison Mode
-Enable to automatically compare TTNN outputs against PyTorch:
-
-```bash
-export TTNN_CONFIG_OVERRIDES='{
-    "enable_fast_runtime_mode": false,
-    "enable_comparison_mode": true,
-    "comparison_mode_should_raise_exception": true,
-    "comparison_mode_pcc": 0.99
-}'
-```
-
-### PCC Validation
-```python
-from tests.ttnn.utils_for_testing import assert_with_pcc
-
-assert_with_pcc(torch_output, ttnn_output, 0.999)
-```
+- **Key Concepts**: See [key-concepts.md](key-concepts.md) for tensor layouts, data types, memory configs, and PCC thresholds
+- **Debugging Tools**: See [debugging-tools.md](debugging-tools.md) for comparison mode and PCC validation
 
 ## Files in This Skill
 
 ```
 .claude/skills/ttnn-model-bringup/
 ├── SKILL.md                              # This file (overview)
+├── key-concepts.md                       # Tensor layouts, data types, memory configs, PCC
+├── debugging-tools.md                    # Comparison mode, PCC validation
 ├── ttnn-operator-mapping.md              # PyTorch → TTNN operator mapping
 │
 ├── # Model-Type Specific Guides
@@ -143,11 +108,6 @@ assert_with_pcc(torch_output, ttnn_output, 0.999)
 ```
 
 ## Reference
-
-### Skill Files
-- `ttnn-operator-mapping.md` - PyTorch to TTNN operator mapping
-- `llm-model-bringup.md` - LLM-specific bringup guide
-- `cnn-model-bringup.md` - CNN-specific bringup guide
 
 ### Documentation
 - `models/docs/model_bring_up.md` - Official model bringup guide
