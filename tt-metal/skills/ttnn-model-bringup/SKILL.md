@@ -5,17 +5,6 @@ description: "Converts PyTorch models to TTNN for Tenstorrent hardware. Covers o
 
 # TTNN Model Bringup
 
-This skill provides a systematic, step-by-step approach to converting PyTorch models to run on Tenstorrent hardware using the TTNN library.
-
-## When to Use This Skill
-
-- When starting to port a new PyTorch model to TTNN
-- When mapping PyTorch operators to their TTNN equivalents
-- When implementing and testing individual TTNN operators
-- When building module blocks from converted operators
-- When validating model correctness using PCC (Pearson Correlation Coefficient)
-- When debugging accuracy issues in TTNN model implementations
-
 ## Model-Type Specific Guides
 
 For detailed guidance based on your model architecture:

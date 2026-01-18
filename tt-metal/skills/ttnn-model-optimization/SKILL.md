@@ -5,16 +5,6 @@ description: "Optimizes TTNN model performance on Tenstorrent hardware. Covers d
 
 # TTNN Model Optimization
 
-This skill provides guidance for optimizing model performance after functional bring-up on Tenstorrent hardware.
-
-## When to Use This Skill
-
-- After completing model bringup (see `ttnn-model-bringup` skill)
-- When model is functionally correct but needs performance improvement
-- When optimizing memory usage or data movement
-- When implementing Metal Trace or multiple command queues
-- When scaling to multiple devices
-
 ## Optimization Workflow
 
 | Step | Name | Description | Document |
