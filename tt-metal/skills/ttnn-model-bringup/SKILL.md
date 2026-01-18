@@ -41,6 +41,21 @@ Follow these steps in order. Complete each step before proceeding to the next.
 | 6 | E2E Model Implementation | Compose modules into complete model | `step-06-e2e-model-implementation.md` |
 | 7 | E2E Model Testing | Validate full model with comprehensive testing | `step-07-e2e-model-testing.md` |
 
+### Progress Checklist
+
+Copy this checklist to track your progress:
+
+```
+Model Bringup Progress:
+- [ ] Step 1: Reference model analyzed (operators listed, shapes documented)
+- [ ] Step 2: Operators mapped to TTNN equivalents
+- [ ] Step 3: Per-operator PCC validated (≥0.999)
+- [ ] Step 4: Modules implemented in TTNN
+- [ ] Step 5: Per-module PCC validated (≥0.99)
+- [ ] Step 6: E2E model composed from modules
+- [ ] Step 7: E2E model validated (accuracy + performance)
+```
+
 ## Instructions for Claude
 
 When helping with model bringup:
