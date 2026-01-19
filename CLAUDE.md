@@ -35,7 +35,8 @@ tt-claude/
 │   └── settings.local.json
 ├── common/
 │   └── skills/           # Skills shared across all projects
-│       └── using-github/ # GitHub operations via gh CLI
+│       ├── using-github/ # GitHub operations via gh CLI
+│       └── using-mgrep/  # Semantic search via mgrep CLI
 ├── tt-metal/
 │   ├── CLAUDE.md         # Project-specific Claude instructions
 │   └── skills/
@@ -85,6 +86,7 @@ Skills in `common/skills/` are shared across all projects.
 | Skill | Description |
 |-------|-------------|
 | `using-github` | GitHub operations via gh CLI (PRs, commits, issues, git blame) |
+| `using-mgrep` | Semantic code search via mgrep CLI (natural language queries) |
 
 ## tt-metal Skills
 
