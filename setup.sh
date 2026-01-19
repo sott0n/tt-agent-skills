@@ -56,11 +56,40 @@ clone_project() {
     fi
 }
 
+# Link individual skills from a source directory
+link_skills() {
+    local source_skills_dir=$1
+    local target_skills_dir=$2
+    local label=$3
+
+    if [[ ! -d "$source_skills_dir" ]]; then
+        return
+    fi
+
+    for skill_dir in "$source_skills_dir"/*/; do
+        if [[ -d "$skill_dir" ]]; then
+            local skill_name
+            skill_name=$(basename "$skill_dir")
+            local target="$target_skills_dir/$skill_name"
+
+            if [[ -L "$target" ]]; then
+                echo "  [OK]   $label/$skill_name: Already linked"
+            elif [[ -d "$target" ]]; then
+                echo "  [WARN] $label/$skill_name: Directory exists (not a symlink)"
+            else
+                ln -s "$skill_dir" "$target"
+                echo "  [DONE] $label/$skill_name: Linked"
+            fi
+        fi
+    done
+}
+
 # Link project configs
 link_project() {
     local name=$1
     local project_path=$2
     local source_dir="$SCRIPT_DIR/$name"
+    local common_dir="$SCRIPT_DIR/common"
 
     if [[ ! -d "$source_dir" ]]; then
         echo "  [SKIP] No config in tt-claude for $name"
@@ -70,19 +99,19 @@ link_project() {
     local claude_dir="$project_path/.claude"
     mkdir -p "$claude_dir"
 
-    # Link skills directory
-    if [[ -d "$source_dir/skills" ]]; then
-        local target="$claude_dir/skills"
-        if [[ -L "$target" ]]; then
-            echo "  [OK]   skills: Already linked"
-        elif [[ -d "$target" ]]; then
-            echo "  [WARN] skills: Directory exists (not a symlink)"
-            echo "         Remove $target manually if you want to link"
-        else
-            ln -s "$source_dir/skills" "$target"
-            echo "  [DONE] skills: Linked -> $source_dir/skills"
-        fi
+    # Create skills directory (not a symlink, to hold both project and common skills)
+    local skills_dir="$claude_dir/skills"
+    if [[ -L "$skills_dir" ]]; then
+        echo "  [WARN] skills: Is a symlink from old setup. Removing to use new structure."
+        rm "$skills_dir"
     fi
+    mkdir -p "$skills_dir"
+
+    # Link project-specific skills
+    link_skills "$source_dir/skills" "$skills_dir" "skills"
+
+    # Link common skills
+    link_skills "$common_dir/skills" "$skills_dir" "skills(common)"
 
     # Link CLAUDE.md if exists
     if [[ -f "$source_dir/CLAUDE.md" ]]; then

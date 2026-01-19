@@ -33,6 +33,9 @@ tt-claude/
 ├── .claude/
 │   ├── agents/           # Custom subagent definitions
 │   └── settings.local.json
+├── common/
+│   └── skills/           # Skills shared across all projects
+│       └── using-github/ # GitHub operations via gh CLI
 ├── tt-metal/
 │   ├── CLAUDE.md         # Project-specific Claude instructions
 │   └── skills/
@@ -74,6 +77,14 @@ After creating or modifying SKILL.md files, use the `skill-reviewer` subagent to
 ```
 Review the skill at tt-metal/skills/my-skill/SKILL.md
 ```
+
+## Common Skills
+
+Skills in `common/skills/` are shared across all projects.
+
+| Skill | Description |
+|-------|-------------|
+| `using-github` | GitHub operations via gh CLI (PRs, commits, issues, git blame) |
 
 ## tt-metal Skills
 
