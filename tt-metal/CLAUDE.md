@@ -37,6 +37,26 @@ cmake .. -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
 ninja && ninja install
 ```
 
+## Python Environment
+
+```bash
+./create_venv.sh
+source python_env/bin/activate
+```
+
+## Environment Variables
+
+```bash
+export TT_METAL_HOME=/path/to/tt-metal
+export PYTHONPATH=$TT_METAL_HOME
+export ARCH_NAME=wormhole_b0  # or grayskull, blackhole
+
+# Debugging
+export TT_LOGGER_LEVEL=Debug
+export TT_METAL_WATCHER=10              # Watcher checks every 10 seconds
+export TT_METAL_DPRINT_CORES=(0,0)-(4,4) # Enable kernel printing
+```
+
 ## Testing
 
 ```bash
@@ -119,19 +139,6 @@ Kernels coordinate through circular buffers in SRAM (1.5MB L1 per core). Data fl
 - Avoid macros when templates/constexpr suffice
 - Avoid SFINAE/enable_if unless necessary
 - Python: Black (line-length=120), isort
-
-## Environment Variables
-
-```bash
-export TT_METAL_HOME=/path/to/tt-metal
-export PYTHONPATH=$TT_METAL_HOME
-export ARCH_NAME=wormhole_b0  # or grayskull, blackhole
-
-# Debugging
-export TT_LOGGER_LEVEL=Debug
-export TT_METAL_WATCHER=10              # Watcher checks every 10 seconds
-export TT_METAL_DPRINT_CORES=(0,0)-(4,4) # Enable kernel printing
-```
 
 ## Key Documentation
 

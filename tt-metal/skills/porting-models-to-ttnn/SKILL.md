@@ -5,6 +5,10 @@ description: "Converts PyTorch models to TTNN for Tenstorrent hardware. Covers o
 
 # TTNN Model Bringup
 
+## Prerequisites
+
+Before running TTNN programs, see the project CLAUDE.md for Build Commands, Python Environment, and Environment Variables..
+
 ## Model-Type Specific Guides
 
 For detailed guidance based on your model architecture:

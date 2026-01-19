@@ -5,6 +5,10 @@ description: "Optimizes TTNN model performance on Tenstorrent hardware. Covers d
 
 # TTNN Model Optimization
 
+## Prerequisites
+
+Before running TTNN programs, see the project CLAUDE.md for Build Commands, Python Environment, and Environment Variables..
+
 ## Optimization Workflow
 
 | Step | Name | Description | Document |
