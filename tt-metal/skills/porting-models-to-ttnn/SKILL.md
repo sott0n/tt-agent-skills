@@ -7,7 +7,50 @@ description: "Converts PyTorch models to TTNN for Tenstorrent hardware. Covers o
 
 ## Prerequisites
 
-Before running TTNN programs, see the project CLAUDE.md for Build Commands, Python Environment, and Environment Variables..
+Before running TTNN programs, see the project CLAUDE.md for Build Commands, Python Environment, and Environment Variables.
+
+## Execution Environment
+
+TTNN models can be developed in two different environments. **Ask the user which environment they are using before starting model implementation.**
+
+| Environment | Setup | Use Case |
+|-------------|-------|----------|
+| **Out-of-tree** | `pip install ttnn` | Quick prototyping, standalone projects, external repositories |
+| **In-tree** | `./build_metal.sh` source build | Contributing to tt-metal/models, production models, full test integration |
+
+### Out-of-tree (pip install)
+
+```bash
+# Install TTNN
+pip install ttnn
+
+# Set Python path (run from your project root)
+export PYTHONPATH=$(pwd)
+
+# CPU performance settings (Linux)
+sudo apt-get install cpufrequtils
+sudo cpupower frequency-set -g performance
+```
+
+- Standalone Python project
+- No need to build tt-metal from source
+- Suitable for rapid prototyping and experimentation
+- Model code lives in user's own repository
+
+### In-tree (source build)
+
+```bash
+git clone https://github.com/tenstorrent/tt-metal.git
+cd tt-metal
+./build_metal.sh
+./create_venv.sh
+source python_env/bin/activate
+```
+
+- Model code added to `models/` directory in tt-metal
+- Full access to internal utilities and test infrastructure
+- Required for contributing models to tt-metal repository
+- See project CLAUDE.md for detailed build instructions
 
 ## Model-Type Specific Guides
 
@@ -40,6 +83,7 @@ Copy this checklist to track your progress:
 
 ```
 Model Bringup Progress:
+- [ ] Environment: [ ] Out-of-tree (pip install) / [ ] In-tree (source build)
 - [ ] Step 1: Reference model analyzed (operators listed, shapes documented)
 - [ ] Step 2: Operators mapped to TTNN equivalents
 - [ ] Step 3: Per-operator PCC validated (≥0.999)
@@ -53,10 +97,33 @@ Model Bringup Progress:
 
 When helping with model bringup:
 
-1. **Ask which step the user is on** or determine from context
-2. **Read the corresponding step file** to get detailed instructions
-3. **Complete the step's checklist** before suggesting to move to the next step
-4. **Confirm with the user** before proceeding to the next step
+1. **Ask about execution environment first** - Out-of-tree (pip install) or In-tree (source build)?
+2. **Ask which step the user is on** or determine from context
+3. **Read the corresponding step file** to get detailed instructions
+4. **Complete the step's checklist** before suggesting to move to the next step
+5. **Output a step completion report** (see format below)
+6. **Confirm with the user** before proceeding to the next step
+
+### Step Completion Report
+
+After completing each step, output a report in the following format:
+
+```
+## Step X Complete: [Step Name]
+
+### Summary
+- What was done in this step
+
+### Outputs
+- List of deliverables/artifacts created
+
+### Issues (if any)
+- Problems encountered and how they were resolved
+
+### Ready for Next Step
+- [ ] All checklist items completed
+- Next: Step X+1 - [Next Step Name]
+```
 
 ### Starting a New Model Bringup
 
@@ -64,15 +131,19 @@ When helping with model bringup:
 User: I want to bring up [model name] on TTNN
 
 Claude:
-1. Determine model type (LLM or CNN)
-2. Read the appropriate model-type guide:
+1. Ask about execution environment:
+   "Which environment are you using?
+   - Out-of-tree: pip install ttnn (standalone project)
+   - In-tree: source build with ./build_metal.sh (adding to tt-metal/models)"
+2. Determine model type (LLM or CNN)
+3. Read the appropriate model-type guide:
    - LLM (transformers, language models): `llm-model-bringup.md`
    - CNN (image models): `cnn-model-bringup.md`
-3. Read `step-01-reference-model-analysis.md`
-4. Help user complete Step 1 tasks
-5. When Step 1 checklist is complete, ask:
+4. Read `step-01-reference-model-analysis.md`
+5. Help user complete Step 1 tasks
+6. When Step 1 checklist is complete, ask:
    "Step 1 is complete. Ready to proceed to Step 2: Operator Mapping?"
-6. If yes, read `step-02-operator-mapping.md` and continue
+7. If yes, read `step-02-operator-mapping.md` and continue
 ```
 
 ### Resuming Model Bringup
@@ -94,11 +165,15 @@ Claude:
 User: "I want to port BERT-base to TTNN"
 
 Claude response:
-1. Identifies model type: LLM (transformer)
-2. Reads llm-model-bringup.md for architecture specifics
-3. Starts with Step 1: helps extract operators from BERT
+1. Asks: "Which environment are you using?
+   - Out-of-tree (pip install ttnn)
+   - In-tree (source build, adding to tt-metal/models)"
+2. User: "Out-of-tree, using pip install"
+3. Identifies model type: LLM (transformer)
+4. Reads llm-model-bringup.md for architecture specifics
+5. Starts with Step 1: helps extract operators from BERT
    - Linear, LayerNorm, GELU, Softmax, matmul
-4. Documents shapes: [batch, seq_len, hidden_dim]
+6. Documents shapes: [batch, seq_len, hidden_dim]
 ```
 
 **Example 2: Debugging PCC failure**
