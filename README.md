@@ -44,8 +44,8 @@ Example output:
 
 | Skill | Description |
 |-------|-------------|
-| `ttnn-model-bringup` | Workflow for converting PyTorch models to TTNN |
-| `ttnn-model-optimization` | Performance optimization for TTNN models |
+| `porting-models-to-ttnn` | Workflow for converting PyTorch models to TTNN |
+| `optimizing-ttnn-models` | Performance optimization for TTNN models |
 
 ## Adding New Skills
 
