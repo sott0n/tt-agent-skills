@@ -1,12 +1,10 @@
-# tt-claude
+# tt-agent-skills
 
-Centralized repository for Claude Code configuration files for Tenstorrent Software projects.
+Centralized repository for Agent configuration files for Tenstorrent Software projects.
 
 ## Supported Projects
 
 - **tt-metal** - Tenstorrent Metal library
-- **tt-mlir** - Tenstorrent MLIR compiler
-- **tt-xla** - Tenstorrent XLA integration
 
 ## Structure
 
@@ -17,10 +15,6 @@ tt-claude/
 │   ├── skills/           # Claude Code skills
 │   ├── CLAUDE.md         # Project-specific instructions (optional)
 │   └── settings.json     # Settings file (optional)
-├── tt-mlir/
-│   └── ...
-└── tt-xla/
-    └── ...
 ```
 
 ## Setup
@@ -30,8 +24,6 @@ git clone <repository-url> ~/workspace/tt-claude
 cd ~/workspace/tt-claude
 
 ./setup.sh tt-metal
-./setup.sh tt-mlir
-./setup.sh tt-xla
 ```
 
 The setup script will:
