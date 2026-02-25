@@ -20,8 +20,8 @@ tt-claude/
 ## Setup
 
 ```bash
-git clone <repository-url> ~/workspace/tt-claude
-cd ~/workspace/tt-claude
+git clone tt-agent-skills
+cd tt-agent-skills
 
 ./setup.sh tt-metal
 ```
@@ -34,8 +34,8 @@ The setup script will:
 Example output:
 ```
 [tt-metal]
-  Found: /Users/you/workspace/tt-metal
-  [DONE] skills: Linked -> /Users/you/tt-claude/tt-metal/skills
+  Found: /home/you/workspace/tt-metal
+  [DONE] skills: Linked -> /home/you/tt-claude/tt-metal/skills
 ```
 
 ## Skills
