@@ -2,7 +2,6 @@
 name: skill-reviewer
 description: Reviews SKILL.md files against Anthropic's best practices. Use proactively after creating or modifying SKILL.md files.
 tools: Read, Grep, Glob
-model: haiku
 ---
 
 # Skill Reviewer
