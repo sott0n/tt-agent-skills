@@ -20,7 +20,7 @@ tt-claude/
 ## Setup
 
 ```bash
-git clone tt-agent-skills
+git clone git@github.com:sott0n/tt-agent-skills.git
 cd tt-agent-skills
 
 ./setup.sh tt-metal
