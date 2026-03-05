@@ -91,11 +91,6 @@ link_project() {
     local source_dir="$SCRIPT_DIR/$name"
     local common_dir="$SCRIPT_DIR/common"
 
-    if [[ ! -d "$source_dir" ]]; then
-        echo "  [SKIP] No config in tt-claude for $name"
-        return
-    fi
-
     local claude_dir="$project_path/.claude"
     mkdir -p "$claude_dir"
 
@@ -107,8 +102,10 @@ link_project() {
     fi
     mkdir -p "$skills_dir"
 
-    # Link project-specific skills
-    link_skills "$source_dir/skills" "$skills_dir" "skills"
+    # Link project-specific skills (if project dir exists)
+    if [[ -d "$source_dir" ]]; then
+        link_skills "$source_dir/skills" "$skills_dir" "skills"
+    fi
 
     # Link common skills
     link_skills "$common_dir/skills" "$skills_dir" "skills(common)"
