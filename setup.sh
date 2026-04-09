@@ -12,47 +12,18 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Available projects
 PROJECTS="tt-metal tt-forge"
 
-# Get git repository URL for a project
-get_repo_url() {
-    local name=$1
-    case "$name" in
-        tt-metal) echo "https://github.com/tenstorrent/tt-metal.git" ;;
-        tt-forge) echo "https://github.com/tenstorrent/tt-forge.git" ;;
-        *)        echo "" ;;
-    esac
-}
+# tt-forge links to multiple repositories
+TT_FORGE_REPOS="tt-forge-models tt-xla tt-onnx-fe tt-mlir"
 
 # Find project directory under HOME (max depth 2)
 find_project() {
     local name=$1
     local found=""
 
-    # Search HOME with max depth 2
-    found=$(find "$HOME" -maxdepth 2 -type d -name "$name" 2>/dev/null | head -n 1)
+    # Search HOME with max depth 2, excluding this repo
+    found=$(find "$HOME" -maxdepth 2 -type d -name "$name" -not -path "$SCRIPT_DIR/*" 2>/dev/null | head -n 1)
 
     echo "$found"
-}
-
-# Clone project if not found
-clone_project() {
-    local name=$1
-    local repo_url
-    repo_url=$(get_repo_url "$name")
-    local clone_dir="$HOME/$name"
-
-    if [[ -z "$repo_url" ]]; then
-        echo "  [ERROR] Unknown project: $name"
-        return 1
-    fi
-
-    echo "  Project not found. Clone to $clone_dir? [y/N]"
-    read -r answer
-    if [[ "$answer" =~ ^[Yy]$ ]]; then
-        git clone "$repo_url" "$clone_dir"
-        echo "$clone_dir"
-    else
-        echo ""
-    fi
 }
 
 # Link individual skills from a source directory
@@ -72,12 +43,12 @@ link_skills() {
             local target="$target_skills_dir/$skill_name"
 
             if [[ -L "$target" ]]; then
-                echo "  [OK]   $label/$skill_name: Already linked"
+                echo "  [OK]   $label/$skill_name"
             elif [[ -d "$target" ]]; then
                 echo "  [WARN] $label/$skill_name: Directory exists (not a symlink)"
             else
                 ln -s "$skill_dir" "$target"
-                echo "  [DONE] $label/$skill_name: Linked"
+                echo "  [DONE] $label/$skill_name"
             fi
         fi
     done
@@ -113,12 +84,12 @@ link_project() {
     if [[ -f "$source_dir/CLAUDE.md" ]]; then
         local target="$claude_dir/CLAUDE.md"
         if [[ -L "$target" ]]; then
-            echo "  [OK]   CLAUDE.md: Already linked"
+            echo "  [OK]   CLAUDE.md"
         elif [[ -f "$target" ]]; then
             echo "  [WARN] CLAUDE.md: File exists (not a symlink)"
         else
             ln -s "$source_dir/CLAUDE.md" "$target"
-            echo "  [DONE] CLAUDE.md: Linked"
+            echo "  [DONE] CLAUDE.md"
         fi
     fi
 
@@ -126,38 +97,53 @@ link_project() {
     if [[ -f "$source_dir/settings.json" ]]; then
         local target="$claude_dir/settings.json"
         if [[ -L "$target" ]]; then
-            echo "  [OK]   settings.json: Already linked"
+            echo "  [OK]   settings.json"
         elif [[ -f "$target" ]]; then
             echo "  [WARN] settings.json: File exists (not a symlink)"
         else
             ln -s "$source_dir/settings.json" "$target"
-            echo "  [DONE] settings.json: Linked"
+            echo "  [DONE] settings.json"
         fi
     fi
+
+    # Show summary
+    echo ""
+    echo "  Linked to: $claude_dir"
 }
 
-# Setup a single project
-setup_project() {
-    local name=$1
+# Setup a single repository
+setup_repo() {
+    local config_name=$1  # Config directory name (tt-metal or tt-forge)
+    local repo_name=$2    # Target repository name
 
-    echo "[$name]"
+    echo "[$repo_name]"
 
     # Find project
     local project_path
-    project_path=$(find_project "$name")
+    project_path=$(find_project "$repo_name")
 
     if [[ -z "$project_path" ]]; then
-        echo "  Project not found under \$HOME (depth 2)"
-        project_path=$(clone_project "$name")
-        if [[ -z "$project_path" ]]; then
-            echo "  [SKIP] Skipping $name"
-            return
-        fi
-    else
-        echo "  Found: $project_path"
+        echo "  [SKIP] Not found under \$HOME (depth 2)"
+        return
     fi
 
-    link_project "$name" "$project_path"
+    echo "  Found: $project_path"
+    link_project "$config_name" "$project_path"
+}
+
+# Setup a project (may link to multiple repos)
+setup_project() {
+    local name=$1
+
+    if [[ "$name" == "tt-forge" ]]; then
+        # tt-forge links to multiple repositories
+        for repo in $TT_FORGE_REPOS; do
+            setup_repo "$name" "$repo"
+            echo ""
+        done
+    else
+        setup_repo "$name" "$name"
+    fi
 }
 
 show_help() {
@@ -166,12 +152,12 @@ show_help() {
     echo "Usage: ./setup.sh <project>"
     echo ""
     echo "Available projects:"
-    for name in $PROJECTS; do
-        echo "  - $name"
-    done
+    echo "  - tt-metal"
+    echo "  - tt-forge (links to: $TT_FORGE_REPOS)"
     echo ""
     echo "Example:"
     echo "  ./setup.sh tt-metal"
+    echo "  ./setup.sh tt-forge"
 }
 
 # Check if project is valid

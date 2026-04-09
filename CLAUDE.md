@@ -15,13 +15,15 @@ tt-claude is a centralized repository for Claude Code configuration files for Te
 
 ```bash
 ./setup.sh tt-metal   # Setup for tt-metal project
-./setup.sh tt-forge   # Setup for tt-forge project
+./setup.sh tt-forge   # Setup for tt-forge repos (tt-forge-models, tt-xla, tt-onnx-fe, tt-mlir)
 ```
 
 The setup script:
-1. Searches for the project under `$HOME` (max depth 2)
+1. Searches for target repositories under `$HOME` (max depth 2)
 2. If not found, offers to clone from GitHub
-3. Creates symlinks in the project's `.claude/` directory (skills, CLAUDE.md, settings.json)
+3. Creates symlinks in each repository's `.claude/` directory (skills, CLAUDE.md, settings.json)
+
+Note: `tt-forge` links configs to all related repositories: tt-forge-models, tt-xla, tt-onnx-fe, tt-mlir
 
 ## Repository Structure
 
