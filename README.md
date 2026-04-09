@@ -5,7 +5,7 @@ Centralized repository for Agent configuration files for Tenstorrent Software pr
 ## Supported Projects
 
 - **tt-metal** - Tenstorrent Metal library
-- **tt-forge** - PyTorch 2.0 frontend for Tenstorrent hardware
+- **tt-forge** - Compiler for Tenstorrent hardware
 
 ## Structure
 
