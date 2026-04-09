@@ -9,15 +9,13 @@ tt-claude is a centralized repository for Claude Code configuration files for Te
 ## Supported Projects
 
 - **tt-metal** - Tenstorrent Metal library (low-level programming model + TT-NN neural network library)
-- **tt-mlir** - Tenstorrent MLIR compiler
-- **tt-xla** - Tenstorrent XLA integration
+- **tt-forge** - DNN compiler for Tenstorrent hardware (tt-xla/tt-onnx-fe frontend → tt-mlir optimization → tt-metal runtime)
 
 ## Setup
 
 ```bash
 ./setup.sh tt-metal   # Setup for tt-metal project
-./setup.sh tt-mlir    # Setup for tt-mlir project
-./setup.sh tt-xla     # Setup for tt-xla project
+./setup.sh tt-forge   # Setup for tt-forge project
 ```
 
 The setup script:
@@ -28,7 +26,7 @@ The setup script:
 ## Repository Structure
 
 ```
-tt-claude/
+tt-agent-skills/
 ├── setup.sh              # Setup script for linking configs
 ├── .claude/
 │   ├── agents/           # Custom subagent definitions
@@ -42,8 +40,15 @@ tt-claude/
 │   └── skills/
 │       ├── porting-models-to-ttnn/    # 7-step model bringup workflow
 │       └── optimizing-ttnn-models/    # Performance optimization workflow
-├── tt-mlir/              # (configs to be added)
-└── tt-xla/               # (configs to be added)
+└── tt-forge/
+    ├── CLAUDE.md         # Project-specific Claude instructions
+    └── skills/
+        ├── tt-forge-bringup/   # Bring up new models
+        ├── tt-forge-debug/     # Debug compilation/execution errors
+        ├── tt-forge-test/      # Run tests and validate accuracy
+        ├── tt-forge-review/    # Review code changes
+        ├── tt-forge-perf/      # Measure model performance
+        └── tt-forge-optimize/  # Implement performance optimizations
 ```
 
 ## Creating Skills
@@ -94,3 +99,14 @@ Skills in `common/skills/` are shared across all projects.
 |-------|-------------|
 | `porting-models-to-ttnn` | 7-step workflow for converting PyTorch models to TTNN |
 | `optimizing-ttnn-models` | Performance optimization (data formats, sharding, Metal Trace, multi-device) |
+
+## tt-forge Skills
+
+| Skill | Description |
+|-------|-------------|
+| `tt-forge-bringup` | Bring up new models on tt-forge |
+| `tt-forge-debug` | Debug compilation/execution errors across the tt-xla, tt-mlir, tt-metal stack |
+| `tt-forge-test` | Run tests and validate PCC/atol accuracy |
+| `tt-forge-review` | Review code changes for quality and consistency |
+| `tt-forge-perf` | Measure model performance (latency, throughput, bottlenecks) |
+| `tt-forge-optimize` | Implement performance optimizations in tt-mlir |

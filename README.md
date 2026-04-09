@@ -5,16 +5,20 @@ Centralized repository for Agent configuration files for Tenstorrent Software pr
 ## Supported Projects
 
 - **tt-metal** - Tenstorrent Metal library
+- **tt-forge** - PyTorch 2.0 frontend for Tenstorrent hardware
 
 ## Structure
 
 ```
-tt-claude/
+tt-agent-skills/
 ├── setup.sh              # Setup script
 ├── tt-metal/
 │   ├── skills/           # Claude Code skills
 │   ├── CLAUDE.md         # Project-specific instructions (optional)
 │   └── settings.json     # Settings file (optional)
+├── tt-forge/
+│   ├── skills/           # Claude Code skills
+│   └── CLAUDE.md         # Project-specific instructions
 ```
 
 ## Setup
@@ -24,6 +28,7 @@ git clone git@github.com:sott0n/tt-agent-skills.git
 cd tt-agent-skills
 
 ./setup.sh tt-metal
+./setup.sh tt-forge
 ```
 
 The setup script will:
@@ -46,6 +51,17 @@ Example output:
 |-------|-------------|
 | `porting-models-to-ttnn` | Workflow for converting PyTorch models to TTNN |
 | `optimizing-ttnn-models` | Performance optimization for TTNN models |
+
+### tt-forge
+
+| Skill | Description |
+|-------|-------------|
+| `tt-forge-bringup` | Bring up new models on tt-forge |
+| `tt-forge-debug` | Debug compilation/execution errors |
+| `tt-forge-test` | Run tests and validate accuracy |
+| `tt-forge-review` | Review code changes |
+| `tt-forge-perf` | Measure model performance |
+| `tt-forge-optimize` | Implement performance optimizations |
 
 ## Adding New Skills
 

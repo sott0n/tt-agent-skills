@@ -3,22 +3,21 @@
 # Creates symlinks from each project's .claude directory to tt-claude configs
 #
 # Usage:
-#   ./setup.sh <project>    Setup specific project (tt-metal, tt-mlir, tt-xla)
+#   ./setup.sh <project>    Setup specific project (tt-metal, tt-forge)
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Available projects
-PROJECTS="tt-metal tt-mlir tt-xla"
+PROJECTS="tt-metal tt-forge"
 
 # Get git repository URL for a project
 get_repo_url() {
     local name=$1
     case "$name" in
         tt-metal) echo "https://github.com/tenstorrent/tt-metal.git" ;;
-        tt-mlir)  echo "https://github.com/tenstorrent/tt-mlir.git" ;;
-        tt-xla)   echo "https://github.com/tenstorrent/tt-xla.git" ;;
+        tt-forge) echo "https://github.com/tenstorrent/tt-forge.git" ;;
         *)        echo "" ;;
     esac
 }
