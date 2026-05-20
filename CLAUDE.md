@@ -40,8 +40,10 @@ tt-agent-skills/
 ├── tt-metal/
 │   ├── CLAUDE.md         # Project-specific Claude instructions
 │   └── skills/
-│       ├── porting-models-to-ttnn/    # 7-step model bringup workflow
-│       └── optimizing-ttnn-models/    # Performance optimization workflow
+│       ├── porting-models-to-ttnn/      # 7-step model bringup workflow
+│       ├── optimizing-ttnn-models/      # Performance optimization workflow
+│       ├── profiling-tt-metal/          # Performance/memory/NoC profiling
+│       └── tt-metal-perf-case-studies/  # End-to-end perf optimization case studies
 └── tt-forge/
     ├── CLAUDE.md         # Project-specific Claude instructions
     └── skills/
@@ -101,6 +103,8 @@ Skills in `common/skills/` are shared across all projects.
 |-------|-------------|
 | `porting-models-to-ttnn` | 7-step workflow for converting PyTorch models to TTNN |
 | `optimizing-ttnn-models` | Performance optimization (data formats, sharding, Metal Trace, multi-device) |
+| `profiling-tt-metal` | Profiling workflow: Performance/Memory/NoC reports, Tracy setup, CSV/SQLite/JSON analysis |
+| `tt-metal-perf-case-studies` | Worked end-to-end perf optimization case studies (profile → bottleneck → fix → verify) |
 
 ## tt-forge Skills
 
