@@ -7,12 +7,9 @@ description: Measure model performance on Tenstorrent hardware. Use when user as
 
 ## When to Use
 
-- Measure model execution time
-- Identify performance bottlenecks
-- Compare before/after optimization
-- Profile op-level timing
-
-**Not for**: Implementing optimizations (use tt-forge-optimize)
+Measure execution time, identify bottlenecks, profile op-level timing, or
+compare before/after. **Not for** implementing optimizations (use
+tt-forge-optimize).
 
 ## Measurement Workflow
 
@@ -155,21 +152,10 @@ cmake --build build
 
 ## Integration
 
-```
-tt-forge-perf (measure)
-        │
-        ▼ report bottlenecks
-User decision: optimize?
-        │
-        ▼ yes
-tt-forge-optimize (implement)
-        │
-        ▼
-tt-forge-test (validate)
-        │
-        ▼
-tt-forge-perf (re-measure)
-```
+Position in the loop: **tt-forge-perf** (this skill; measure) → user decides
+whether to optimize → **tt-forge-optimize** (implement) → **tt-forge-test**
+(validate) → back to **tt-forge-perf** (re-measure). Full pipeline in
+`tt-forge/CLAUDE.md`.
 
 ## Comparison Mode
 

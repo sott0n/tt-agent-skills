@@ -7,9 +7,8 @@ description: Run tests and validate correctness for tt-forge changes. Use after 
 
 ## When to Use
 
-- After code changes to verify correctness
-- Before Code Review Skill
-- Part of optimization loop (after Optimize Skill)
+After code changes to verify correctness (PCC/atol), or as the validation
+step in the optimization loop (after tt-forge-optimize).
 
 ## Test Commands
 

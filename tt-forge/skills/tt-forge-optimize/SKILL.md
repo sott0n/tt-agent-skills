@@ -7,11 +7,8 @@ description: Implement performance optimizations in tt-mlir. Use after tt-forge-
 
 ## When to Use
 
-- User wants to improve performance
-- tt-forge-perf identified bottlenecks
-- Implementing fusion, tiling, or other optimizations
-
-**Not for**: Measuring performance (use tt-forge-perf)
+Implement a performance fix (fusion, tiling, etc.) after tt-forge-perf has
+identified a bottleneck. **Not for** measuring performance (use tt-forge-perf).
 
 ## Optimization Workflow
 
@@ -131,26 +128,10 @@ Use **tt-forge-perf Skill** to compare before/after.
 
 ## Integration
 
-```
-tt-forge-perf (identify bottleneck)
-        │
-        ▼
-tt-forge-optimize (this skill)
-        │
-        ├─ Propose approach → User approves
-        │
-        ▼
-Implement changes
-        │
-        ▼
-tt-forge-test (validate correctness)
-        │
-        ▼
-tt-forge-perf (measure improvement)
-        │
-        ▼
-User: continue or done?
-```
+Position in the loop: **tt-forge-perf** (identify bottleneck) →
+**tt-forge-optimize** (this skill; propose approach, get user approval,
+implement) → **tt-forge-test** (validate) → **tt-forge-perf** (re-measure).
+Full pipeline in `tt-forge/CLAUDE.md`.
 
 ## Output Format
 

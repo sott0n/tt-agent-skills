@@ -7,11 +7,8 @@ description: Bring up or compile new models on tt-forge. Use when user says "bri
 
 ## When to Use
 
-- Starting work on a new model
-- Model doesn't exist in test suite yet
-- First time running a model on TT hardware
-
-**Not for**: Debugging existing failures (use tt-forge-debug)
+A new model: not yet in the test suite, or running on TT hardware for the
+first time. **Not for** debugging existing failures (use tt-forge-debug).
 
 ## Bringup Workflow
 
@@ -37,59 +34,19 @@ ls third_party/tt_forge_models/ | grep -i "<model_name>"
 
 ## Step 2: Create Model in tt-forge-models
 
-Location: `third_party/tt_forge_models/<model_name>/pytorch/`
+Location: `third_party/tt_forge_models/<model_name>/pytorch/loader.py`
 
-```python
-# loader.py
-from enum import StrEnum
-from third_party.tt_forge_models import ForgeModel
-from third_party.tt_forge_models.config import ModelConfig, ModelTask, ModelSource
-
-class ModelVariant(StrEnum):
-    DEFAULT = "default"
-
-class ModelLoader(ForgeModel):
-    _VARIANTS = {
-        ModelVariant.DEFAULT: ModelConfig(
-            name="org/model-name",
-            task=ModelTask.CV_IMAGE_CLS,  # or NLP_TEXT_CLS, etc.
-            source=ModelSource.HUGGINGFACE,
-        ),
-    }
-    DEFAULT_VARIANT = ModelVariant.DEFAULT
-
-    def load_model(self, **kwargs):
-        # Load from HuggingFace/torchvision/etc.
-        ...
-
-    def load_inputs(self, batch_size=1, **kwargs):
-        return (torch.randn(batch_size, 3, 224, 224, dtype=torch.bfloat16),)
-```
+Implement a `ModelLoader(ForgeModel)` with a `_VARIANTS` map plus
+`load_model()` and `load_inputs()`. Copy-paste skeleton:
+[`references/model-templates.md`](references/model-templates.md#loaderpy-tt-forge-models).
 
 ## Step 3: Create Test File
 
 Location: `tests/torch/models/<model_name>/test_<model_name>.py`
 
-```python
-import pytest
-from infra import TorchModelTester, ComparisonConfig
-from third_party.tt_forge_models.<model_name>.pytorch import ModelLoader, ModelVariant
-
-class Tester(TorchModelTester):
-    def __init__(self, variant, comparison_config=ComparisonConfig(), **kwargs):
-        self._loader = ModelLoader(variant)
-        super().__init__(comparison_config, **kwargs)
-
-    def _get_model(self):
-        return self._loader.load_model()
-
-    def _get_input_activations(self):
-        return self._loader.load_inputs()
-
-@pytest.mark.push
-def test_model():
-    Tester(ModelVariant.DEFAULT).test()
-```
+Subclass `TorchModelTester` (`_get_model` / `_get_input_activations` wired to
+the loader) and add a `@pytest.mark.push` test. Copy-paste skeleton:
+[`references/model-templates.md`](references/model-templates.md#test-file-torchmodeltester).
 
 ## Step 4: First Run
 
@@ -113,12 +70,6 @@ Do not debug here. Bringup skill focuses on setup, debug skill handles errors.
 
 ## Integration
 
-```
-tt-forge-bringup (setup)
-        │
-        ▼ error?
-tt-forge-debug (diagnosis/fix)
-        │
-        ▼ success?
-tt-forge-test (PCC validation)
-```
+Position in the loop: **tt-forge-bringup** (this skill; setup) → on error
+**tt-forge-debug** → on success **tt-forge-test** (PCC validation). Full
+pipeline in `tt-forge/CLAUDE.md`.

@@ -7,12 +7,9 @@ description: Debug and fix compilation/execution errors in tt-xla, tt-mlir, and 
 
 ## When to Use
 
-- Compilation error occurred
-- Runtime error or crash
-- Model produces incorrect results
-- Called from tt-forge-bringup when errors occur
-
-**Not for**: Initial model setup (use tt-forge-bringup first)
+A compilation/runtime error, crash, or incorrect results — including when
+called from tt-forge-bringup. **Not for** initial model setup (use
+tt-forge-bringup first).
 
 ## Debug Workflow Checklist
 
