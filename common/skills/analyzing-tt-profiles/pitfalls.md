@@ -3,11 +3,15 @@
 ## Objective
 
 Avoid the common traps that produce misleading profile data or
-silently truncate captures. Pitfalls 1-10 apply to Performance Reports
-(Track A). Pitfalls 11-13 apply to Memory Reports (Track B) — note
-that the Memory workflow changed in mid-2026; pitfalls 11-13 reflect
-the current `full_graph_capture` flow, not the legacy `TTNN_CONFIG_OVERRIDES`
-path.
+silently truncate captures. These apply to **Performance Reports**
+(`ops_perf_results*.csv`) regardless of how the profile was captured
+(`python -m tracy` or `ttrt perf`).
+
+For **Memory Report** pitfalls, see the project capture skill, since
+the memory formats diverge: TTNN's `full_graph_capture` → SQLite
+caveats live in `profiling-tt-metal` (`memory-reports.md`); tt-forge's
+`ttrt run --memory` → `memory_results.json` caveats live in
+`tt-forge-perf`.
 
 ## Pitfall 1: Profiler + Metal Trace = fatal
 
@@ -190,87 +194,6 @@ Always inspect `ATTRIBUTES` before claiming "these are the same op."
 awk -F, '$1=="MatmulDeviceOperation" {print $5}' ops_perf_results_*.csv | sort -u | head
 ```
 
-## Pitfall 11: Legacy `TTNN_CONFIG_OVERRIDES` path silently produces nothing
-
-Setting `enable_logging`, `enable_detailed_buffer_report`, or
-`enable_graph_report` via `TTNN_CONFIG_OVERRIDES` / `TTNN_CONFIG_PATH`
-**no longer writes a SQLite during execution**. The run will complete
-(pytest PASSED), the Config{...} startup line will show the flags set,
-and yet `generated/ttnn/reports/` will not contain a database.
-
-The path described in `ttnn/tutorials/ttnn_visualizer.md` is outdated.
-Per the docstring of `ttnn/ttnn/graph_report.py`:
-
-> "This module completely decouples graph capture (C++) from
-> visualization (SQLite). No database operations happen during model
-> execution - everything is offline."
-
-**Current workflow** (see `memory-reports.md` for full instructions):
-
-```python
-# 1. Capture
-with ttnn.graph.full_graph_capture("/tmp/report.json", slow_dispatch=True):
-    # ... model code ...
-```
-
-```bash
-# 2. Import
-python -m ttnn.graph_report /tmp/report.json /tmp/db_dir/
-```
-
-The Performance Report path (Track A) and Memory Report path (Track B)
-do not conflict in the new flow — Memory Reports needs no env var, so
-tracy + JSON capture can run in the same process if desired (though
-separate runs remain cleaner).
-
-## Pitfall 12: Code outside the `full_graph_capture` block is invisible
-
-`full_graph_capture` only captures ops dispatched while the `with`
-context is active. Common mistakes:
-
-```python
-# Wrong: model code runs outside the context
-with ttnn.graph.full_graph_capture("/tmp/report.json"):
-    pass  # nothing captured
-
-output = model(inputs)
-```
-
-```python
-# Wrong: setup code (weight loading, preprocessing) was the goal but
-# only the forward pass got captured
-weights = load_weights()         # not captured (outside)
-with ttnn.graph.full_graph_capture("/tmp/report.json"):
-    output = model(inputs)       # captured
-```
-
-**Fix**: wrap the smallest meaningful region; verify by counting
-`operations` in the imported SQLite. Counts much lower than expected
-mean the `with` block missed the workload.
-
-## Pitfall 13: `full_graph_capture` autouse pytest fixture causes segfault
-
-Wrapping every test in `full_graph_capture` via a `conftest.py`
-autouse fixture has been observed to crash the Python interpreter
-during teardown (interpreter `dumped core`, unrelated to the test
-itself). The root cause is fragile interaction between fixture
-lifetime, ttnn graph capture global state, and pytest's collection.
-
-**Do not** add:
-
-```python
-# DO NOT DO THIS — causes interpreter segfault
-@pytest.fixture(autouse=True)
-def _capture(tmp_path):
-    with ttnn.graph.full_graph_capture(str(tmp_path / "report.json")):
-        yield
-```
-
-**Instead**: inline `full_graph_capture` at a specific call site (in
-the test body or model forward) to capture a specific region. For
-broader coverage, write a standalone script that drives the model
-directly outside pytest.
-
 ## Quick mental model
 
 | Symptom | Likely cause |
@@ -280,11 +203,6 @@ directly outside pytest.
 | "First few HOST DURATION values are huge" | Pitfall 4 — cold JIT, filter or warm up |
 | "TypeError mid-profile" | Pitfall 5 — branch/build mismatch |
 | "8-core matmul with 5 ms kernel" | Real bottleneck — wrong program_config (not a profiler bug) |
-| "Set TTNN_CONFIG_OVERRIDES, ran pytest, but no `generated/ttnn/reports/` dir created" | Pitfall 11 — legacy path, use `full_graph_capture` instead |
-| "Memory Report `operations` table is empty" | Pitfall 12 — model code ran outside the `with` block |
-| "Pytest crashed with `dumped core` after switching to `full_graph_capture`" | Pitfall 13 — autouse fixture is fragile, inline the context manager |
-| "Recipe 1 (peak L1) returns nothing" | Common gotcha #2 in `memory-sqlite-recipes.md` — workload used DRAM only |
-| "Recipe 3 (dtype dist) shows same dtype as two rows" | Common gotcha #1 — `DataType.X` vs `DataType::X` repr mixing |
 
 ## Checklist before trusting a profile
 

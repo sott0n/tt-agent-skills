@@ -16,12 +16,23 @@ tt-claude is a centralized repository for Claude Code configuration files for Te
 ```bash
 ./setup.sh tt-metal   # Setup for tt-metal project
 ./setup.sh tt-forge   # Setup for tt-forge repos (tt-forge-models, tt-xla, tt-onnx-fe, tt-mlir)
+./setup.sh common     # Link common skills globally only (no per-project linking)
 ```
 
+### Hybrid linking model
+
+The setup uses a hybrid layout so common skills work everywhere while project-specific configs stay scoped to their repos:
+
+- **Common skills → global** (`~/.claude/skills/`): `common/skills/*` are linked once into the user-level skills directory, so they are available in any directory regardless of project. Linked automatically on every `setup.sh` run.
+- **Project-specific skills → per-repo** (`<repo>/.claude/skills/`): only the matching project's skills are linked, keeping the skill list focused on the current context.
+- **CLAUDE.md / settings.json → per-repo** (`<repo>/.claude/`): these are project-specific and cannot be global.
+
 The setup script:
-1. Searches for target repositories under `$HOME` (max depth 2)
-2. If not found, offers to clone from GitHub
-3. Creates symlinks in each repository's `.claude/` directory (skills, CLAUDE.md, settings.json)
+1. Links `common/skills` globally to `~/.claude/skills/`
+2. Searches for target repositories under `$HOME` (max depth 2)
+3. If not found, offers to clone from GitHub
+4. Creates symlinks in each repository's `.claude/` directory (project skills, CLAUDE.md, settings.json)
+5. Removes any stale per-repo common skill symlinks left by older setups (common is now global)
 
 Note: `tt-forge` links configs to all related repositories: tt-forge-models, tt-xla, tt-onnx-fe, tt-mlir
 
@@ -36,13 +47,15 @@ tt-agent-skills/
 ├── common/
 │   └── skills/           # Skills shared across all projects
 │       ├── using-github/ # GitHub operations via gh CLI
-│       └── using-mgrep/  # Semantic search via mgrep CLI
+│       ├── using-mgrep/  # Semantic search via mgrep CLI
+│       ├── recovering-tt-hardware/ # HW reset + firmware reflash recovery
+│       └── analyzing-tt-profiles/  # Front-end-agnostic profile analysis (CSV/NoC JSON)
 ├── tt-metal/
 │   ├── CLAUDE.md         # Project-specific Claude instructions
 │   └── skills/
 │       ├── porting-models-to-ttnn/      # 7-step model bringup workflow
 │       ├── optimizing-ttnn-models/      # Performance optimization workflow
-│       ├── profiling-tt-metal/          # Performance/memory/NoC profiling
+│       ├── profiling-tt-metal/          # TTNN profile *capture* (tracy build, python -m tracy, memory SQLite)
 │       └── tt-metal-perf-case-studies/  # End-to-end perf optimization case studies
 └── tt-forge/
     ├── CLAUDE.md         # Project-specific Claude instructions
@@ -50,7 +63,6 @@ tt-agent-skills/
         ├── tt-forge-bringup/   # Bring up new models
         ├── tt-forge-debug/     # Debug compilation/execution errors
         ├── tt-forge-test/      # Run tests and validate accuracy
-        ├── tt-forge-review/    # Review code changes
         ├── tt-forge-perf/      # Measure model performance
         └── tt-forge-optimize/  # Implement performance optimizations
 ```
@@ -90,12 +102,14 @@ Review the skill at tt-metal/skills/my-skill/SKILL.md
 
 ## Common Skills
 
-Skills in `common/skills/` are shared across all projects.
+Skills in `common/skills/` are shared across all projects and are linked globally to `~/.claude/skills/`, so they are available in any directory.
 
 | Skill | Description |
 |-------|-------------|
 | `using-github` | GitHub operations via gh CLI (PRs, commits, issues, git blame) |
 | `using-mgrep` | Semantic code search via mgrep CLI (natural language queries) |
+| `recovering-tt-hardware` | Recover wedged TT hardware: tt-smi reset → tt-flash firmware reflash fallback |
+| `analyzing-tt-profiles` | Front-end-agnostic profile *analysis*: `ops_perf_results*.csv` columns, `tt-perf-report` CLI, Python recipes, NoC JSON, pitfalls. Same CSV from `python -m tracy` (TTNN) or `ttrt perf` (tt-forge) |
 
 ## tt-metal Skills
 
@@ -103,7 +117,7 @@ Skills in `common/skills/` are shared across all projects.
 |-------|-------------|
 | `porting-models-to-ttnn` | 7-step workflow for converting PyTorch models to TTNN |
 | `optimizing-ttnn-models` | Performance optimization (data formats, sharding, Metal Trace, multi-device) |
-| `profiling-tt-metal` | Profiling workflow: Performance/Memory/NoC reports, Tracy setup, CSV/SQLite/JSON analysis |
+| `profiling-tt-metal` | TTNN profile *capture*: Tracy build setup, `python -m tracy` (Performance/NoC), and TTNN Memory Reports (`full_graph_capture` → SQLite + SQL recipes). Analysis lives in `analyzing-tt-profiles` |
 | `tt-metal-perf-case-studies` | Worked end-to-end perf optimization case studies (profile → bottleneck → fix → verify) |
 
 ## tt-forge Skills
@@ -113,6 +127,5 @@ Skills in `common/skills/` are shared across all projects.
 | `tt-forge-bringup` | Bring up new models on tt-forge |
 | `tt-forge-debug` | Debug compilation/execution errors across the tt-xla, tt-mlir, tt-metal stack |
 | `tt-forge-test` | Run tests and validate PCC/atol accuracy |
-| `tt-forge-review` | Review code changes for quality and consistency |
 | `tt-forge-perf` | Measure model performance (latency, throughput, bottlenecks) |
 | `tt-forge-optimize` | Implement performance optimizations in tt-mlir |

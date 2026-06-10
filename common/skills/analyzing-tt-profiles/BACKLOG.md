@@ -1,4 +1,4 @@
-# profiling-tt-metal — Backlog
+# analyzing-tt-profiles — Backlog
 
 Forward-looking improvements organized by Track and theme. Each item
 is sized small enough to be a single PR / commit. Promote items off
@@ -6,6 +6,14 @@ this list when implemented; keep the list honest about what's stale.
 
 Use this as the entry point when the question is "what's still missing
 from this skill?".
+
+> **Scope note.** This skill is the front-end-agnostic *analysis*
+> layer. The **Memory Reports** backlog (Track B below) now belongs to
+> the project *capture* skills, because the memory formats diverge:
+> TTNN's `full_graph_capture` → SQLite lives in `profiling-tt-metal`;
+> tt-forge's `ttrt run --memory` → `memory_results.json` lives in
+> `tt-forge-perf`. It is kept here for historical continuity until each
+> capture skill grows its own backlog.
 
 ## Conventions
 

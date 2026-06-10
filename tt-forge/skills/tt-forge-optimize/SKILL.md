@@ -70,6 +70,14 @@ Location: `python_package/tt_torch/backend/`
 # passes.py - Add fusion pass
 ```
 
+> **Find fusion candidates first.** Before adding a fusion pass, audit the
+> model's TTNN IR for missed fusion opportunities with the official tt-xla
+> **`finding-missed-fusions`** skill
+> (`tenstorrent/tt-xla/.claude/skills/finding-missed-fusions`). It surfaces
+> both *direct* fusions (a fused TTNN op already exists) and *theoretical*
+> fusions (the pattern is a single kernel in torch/triton/cuda), so you
+> implement the highest-value fusion rather than guessing.
+
 ### TTIR/TTNN Passes (tt-mlir)
 
 Location: `third_party/tt-mlir/src/tt-mlir/`
@@ -91,6 +99,16 @@ Location: `tt-metal` repository (separate)
 | Compute efficiency | Tiling | tt-mlir TTNN |
 | Small ops overhead | Composite ops | tt-xla |
 | Layout conversion | Memory layout opt | tt-mlir |
+| Host dispatch overhead (host-bound) | Trace capture/replay + multi-CQ | runtime — see official `tt-enable-tracing` skill |
+
+> **Host-bound? Use trace capture/replay.** If `tt-forge-perf` shows
+> host/dispatch time dominating device kernel time (rather than a single
+> slow op), the lever is TTNN **trace capture and replay**, not fusion or
+> tiling. This is covered by the official tt-forge **`tt-enable-tracing`**
+> skill (`tenstorrent/tt-forge/skills/tt-enable-tracing`) — reserve
+> `trace_region_size` when opening the device, capture the op sequence
+> once, and replay it without per-op host dispatch. Combine with multiple
+> command queues for real-time / multi-chip inference.
 
 ## Step 5: Test Changes
 
@@ -148,3 +166,18 @@ After implementation:
 
 **Next**: Run tt-forge-test to validate, then tt-forge-perf to measure.
 ```
+
+## Related Skills
+
+- **`tt-enable-tracing`** (official tt-forge skill,
+  `tenstorrent/tt-forge/skills/tt-enable-tracing`) — TTNN trace
+  capture/replay to eliminate host dispatch overhead. Reach for this
+  when the bottleneck is host-bound rather than a slow device op.
+- **`finding-missed-fusions`** (official tt-xla skill,
+  `tenstorrent/tt-xla/.claude/skills/finding-missed-fusions`) — audits a
+  model's TTNN IR for missed op-fusion opportunities. Run it before
+  implementing an Op Fusion (Step 4) to pick the highest-value fusion.
+- `tt-forge-perf` — measure before/after and classify the bottleneck
+  (host-bound vs compute/memory-bound).
+- `analyzing-tt-profiles` (common) — interpret the `ops_perf_results.csv`
+  to decide which optimization category applies.

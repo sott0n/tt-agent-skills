@@ -100,6 +100,12 @@ If `export_path` was set, check which IR files exist in `<export_path>/irs/`:
 | `Failed to generate flatbuffer`, `serialization` | 5 | [stage5-flatbuffer.md](references/stage5-flatbuffer.md) |
 | `runtime`, `submit`, `execute`, `tt-metal`, `Argument count mismatch` | 6 | [stage6-runtime.md](references/stage6-runtime.md) |
 
+> **Graph breaks (Stage 1):** for *excessive* graph breaks (a model
+> generating more graphs than expected), the official tt-xla
+> **`graph-break-analysis`** skill analyzes the cause and proposes fixes —
+> reach for it rather than debugging graph splits by hand. See "Related
+> Skills (official tt-xla)" below.
+
 ### Step 3: Check Stack Trace Source Files
 
 | Source file path | Stage |
@@ -181,6 +187,35 @@ export XLA_HLO_DEBUG=1
 
 - [Compile Options](references/compile-options.md) - Complete reference for all torch.compile options
 - [ttrt Tool](references/tools-ttrt.md) - Flatbuffer inspection, execution, and debugging tool
+
+## Related Skills (official tt-xla)
+
+When working in the tt-xla repo, these official skills automate specific
+debug/triage cases this workflow points at. Prefer them over manual
+triage when the failure matches; they live in
+`tenstorrent/tt-xla/.claude/skills/`.
+
+- **`graph-break-analysis`** — analyzes and proposes fixes for excessive
+  graph breaks in PyTorch/XLA compilation (**Stage 1**). Use when a model
+  generates more graphs than expected, or the error mentions "graph
+  break". Note the common misconception it corrects: different MLIR
+  modules (e.g. VHLO versions) are *not* graph breaks.
+- **`triage-dtype-bfloat16`** — triages one tt-forge-models *training*
+  test failing with a bfloat16 dtype-mismatch `RuntimeError` (e.g. "mat1
+  and mat2 must have the same dtype, but got Float and BFloat16", or
+  "'<op>' not implemented for 'BFloat16'"). Attempts a minimal loader
+  `dtype_override` fix, re-runs CPU + pytest, and updates the test YAML
+  (`EXPECTED_PASSING` / `KNOWN_FAILURE_XFAIL`). Pairs with **Step 0**
+  (known-failure YAML) above.
+- **`triage-unpack-forward-output`** — triages one tt-forge-models
+  *training* test stuck at `FAILED_FE_COMPILATION` with reason
+  "tt-forge-models doesn't implement unpack_forward_output for this
+  model" (**Stage 0**). Inspects the model's forward output, registers a
+  handler or per-loader override, and updates the YAML.
+
+These triage skills are narrow (one failure pattern each) and
+tt-xla/tt-forge-models-specific; this `tt-forge-debug` skill remains the
+general entry point for stack-wide diagnosis.
 
 ## Debug Feedback Loop
 

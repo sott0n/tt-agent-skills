@@ -309,7 +309,7 @@ CLI — that tool consumes Perf Reports CSV, not Memory SQLite.
 Memory Reports analysis is a logical extension that could be added
 to `tt-perf-report` (or a sibling `tt-memory-report` tool). The
 recipes above are upstream contribution candidates in the same spirit
-as `analysis-recipes.md`:
+as `analysis-recipes.md` (in the `analyzing-tt-profiles` skill):
 
 | Recipe | Possible flag in a future `tt-memory-report` CLI |
 |---|---|

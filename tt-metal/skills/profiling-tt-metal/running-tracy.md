@@ -105,7 +105,8 @@ python -m tracy -p -r -n model_warm -m pytest \
 
 Cheaper if you can't easily configure warm iters. The first ~100 ops
 in the CSV will have inflated `HOST DURATION` (JIT compile time).
-Filter them out in analysis. See `analysis-recipes.md`.
+Filter them out in analysis. See the `analyzing-tt-profiles` skill
+(`analysis-recipes.md`).
 
 ## Per-module profiling for large models
 
@@ -128,7 +129,7 @@ python -m tracy -p -r -n <model>_<module> -m pytest \
 ```
 
 The captures land in separate directories and can be aggregated
-together (see `analysis-recipes.md`).
+together (see the `analyzing-tt-profiles` skill, `analysis-recipes.md`).
 
 ## Output sanity check
 

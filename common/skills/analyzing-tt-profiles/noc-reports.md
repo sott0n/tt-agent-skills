@@ -6,6 +6,12 @@
 > recipes below as guidance, not a stable contract — verify against the
 > current `tt_metal/impl/profiler/profiler.cpp` if anything looks off.
 
+> **Capture entry point.** NoC traces are currently captured only via the
+> TTNN Tracy path (`python -m tracy --collect-noc-traces`, see the
+> `profiling-tt-metal` skill). `ttrt perf` does not yet expose a
+> NoC-trace flag. The JSON schema and analysis recipes below apply to the
+> output regardless of who produced it.
+
 ## Objective
 
 Capture per-RISC NoC events (reads, writes, multicast, semaphores) on

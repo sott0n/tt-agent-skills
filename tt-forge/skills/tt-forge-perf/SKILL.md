@@ -53,15 +53,30 @@ pytest --log-memory tests/torch/models/<model>/test_<model>.py
 
 ### Read ops_perf_results.csv
 
+`ttrt perf` drives the **same tt-metal Tracy stack** as TTNN's
+`python -m tracy` (it runs `capture-release` / `csvexport-release` and
+`tracy.process_ops_logs` under the hood), so it emits the **identical**
+`ops_perf_results.csv` schema — not a simplified one. Interpret it with
+the front-end-agnostic **`analyzing-tt-profiles`** skill.
+
+Key columns (full breakdown in `analyzing-tt-profiles/csv-columns.md`):
+- `OP CODE` — operation name (e.g. `MatmulDeviceOperation`)
+- `DEVICE KERNEL DURATION [ns]` — real device-side time (sum for total work)
+- `HOST DURATION [ns]` — host dispatch time
+- `CORE COUNT` — cores the op used (low + slow = under-parallelized)
+- `MATH FIDELITY` — LoFi / HiFi2 / HiFi3 / HiFi4
+- `ATTRIBUTES` — op-specific shape/config string
+- ⚠ `OP TO OP LATENCY [ns]` — **inflated by profiler; not host overhead**
+
+First-pass analysis is easiest with the `tt-perf-report` CLI:
+
 ```bash
-# Sort by execution time
-cat ops_perf_results.csv | sort -t',' -k3 -rn | head -10
+pip install tt-perf-report
+tt-perf-report ops_perf_results.csv --min-percentage 1.0
 ```
 
-Key columns:
-- `op_name`: Operation name
-- `execution_time_ms`: Time in milliseconds
-- `percentage`: Percentage of total time
+See `analyzing-tt-profiles/tt-perf-report.md` and `analysis-recipes.md`
+for deeper slicing (core-count distribution, worst-N, per-core skew).
 
 ### Common Bottleneck Patterns
 
@@ -82,10 +97,18 @@ ttrt run out.ttnn --memory --save-artifacts
 ttrt run out.ttnn --memory --check-memory-leak --save-artifacts
 ```
 
+This writes `memory_results.json` per program (via the runtime
+callback `save_memory_report`). Note this is a **different format** from
+TTNN's `full_graph_capture` → `db.sqlite` — the SQLite SQL recipes in
+`profiling-tt-metal` do **not** apply to tt-forge memory reports.
+
 Memory report shows:
 - DRAM/L1 allocation per op
 - Bytes per bank
 - Free/allocated memory
+
+Granularity is controlled by `--memory-log-level`
+(`none` / `program` / `operation` / `any`).
 
 ## Step 4: Report Format
 
@@ -163,3 +186,14 @@ When comparing before/after:
 
 **Result**: [IMPROVED / REGRESSED / NO CHANGE]
 ```
+
+## Related Skills
+
+- **`analyzing-tt-profiles`** (common) — how to interpret
+  `ops_perf_results.csv` and NoC JSON: column semantics, the
+  `tt-perf-report` CLI, Python aggregation recipes, and analysis
+  pitfalls (OP-TO-OP trap, cold JIT, under-parallelization). The CSV
+  `ttrt perf` produces is the same format analyzed there.
+- `tt-forge-optimize` — implement optimizations once a bottleneck is
+  identified.
+- `recovering-tt-hardware` — recover a wedged device after a bad run.

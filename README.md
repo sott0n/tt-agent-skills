@@ -59,7 +59,6 @@ Example output:
 | `tt-forge-bringup` | Bring up new models on tt-forge |
 | `tt-forge-debug` | Debug compilation/execution errors |
 | `tt-forge-test` | Run tests and validate accuracy |
-| `tt-forge-review` | Review code changes |
 | `tt-forge-perf` | Measure model performance |
 | `tt-forge-optimize` | Implement performance optimizations |
 

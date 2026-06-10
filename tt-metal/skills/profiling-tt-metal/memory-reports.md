@@ -10,8 +10,9 @@ opportunities.
 
 The output is **fully agent-queryable** via `sqlite3` (see
 `memory-sqlite-recipes.md` for ready-to-use SQL recipes).
-It is **not** a profile of execution time — for that, use the
-Performance Reports track (`tt-perf-report.md`).
+It is **not** a profile of execution time — for that, capture a
+Performance Report (`running-tracy.md`) and analyze it with the
+`analyzing-tt-profiles` skill (`tt-perf-report.md`).
 
 ## ⚠ Workflow change
 

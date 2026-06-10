@@ -4,16 +4,20 @@
 #
 # Usage:
 #   ./setup.sh <project>    Setup specific project (tt-metal, tt-forge)
+#   ./setup.sh common       Link common skills globally to ~/.claude/skills only
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Available projects
-PROJECTS="tt-metal tt-forge"
+# Available projects (plus the special "common" target)
+PROJECTS="tt-metal tt-forge common"
 
 # tt-forge links to multiple repositories
 TT_FORGE_REPOS="tt-forge-models tt-xla tt-onnx-fe tt-mlir"
+
+# Common skills are linked globally so they work in any directory
+GLOBAL_SKILLS_DIR="$HOME/.claude/skills"
 
 # Find project directory under HOME (max depth 2)
 find_project() {
@@ -54,12 +58,43 @@ link_skills() {
     done
 }
 
+# Link common skills globally to ~/.claude/skills
+link_common_global() {
+    local common_dir="$SCRIPT_DIR/common"
+
+    echo "[common -> global]"
+    mkdir -p "$GLOBAL_SKILLS_DIR"
+    link_skills "$common_dir/skills" "$GLOBAL_SKILLS_DIR" "skills(common)"
+    echo ""
+    echo "  Linked to: $GLOBAL_SKILLS_DIR"
+    echo ""
+}
+
+# Remove common skill symlinks left in a project's .claude/skills by old setups
+# (common skills now live in the global ~/.claude/skills instead).
+cleanup_project_common() {
+    local skills_dir=$1
+    local common_skills_dir="$SCRIPT_DIR/common/skills"
+
+    [[ -d "$common_skills_dir" ]] || return
+
+    for skill_dir in "$common_skills_dir"/*/; do
+        [[ -d "$skill_dir" ]] || continue
+        local skill_name
+        skill_name=$(basename "$skill_dir")
+        local stale="$skills_dir/$skill_name"
+        if [[ -L "$stale" ]]; then
+            rm "$stale"
+            echo "  [CLEAN] skills/$skill_name (now global)"
+        fi
+    done
+}
+
 # Link project configs
 link_project() {
     local name=$1
     local project_path=$2
     local source_dir="$SCRIPT_DIR/$name"
-    local common_dir="$SCRIPT_DIR/common"
 
     local claude_dir="$project_path/.claude"
     mkdir -p "$claude_dir"
@@ -77,8 +112,9 @@ link_project() {
         link_skills "$source_dir/skills" "$skills_dir" "skills"
     fi
 
-    # Link common skills
-    link_skills "$common_dir/skills" "$skills_dir" "skills(common)"
+    # Common skills are linked globally (see link_common_global), not per-project.
+    # Remove any stale per-project common links left by older setups.
+    cleanup_project_common "$skills_dir"
 
     # Link CLAUDE.md if exists
     if [[ -f "$source_dir/CLAUDE.md" ]]; then
@@ -135,7 +171,10 @@ setup_repo() {
 setup_project() {
     local name=$1
 
-    if [[ "$name" == "tt-forge" ]]; then
+    if [[ "$name" == "common" ]]; then
+        # Global common skills only; no per-project linking
+        return
+    elif [[ "$name" == "tt-forge" ]]; then
         # tt-forge links to multiple repositories
         for repo in $TT_FORGE_REPOS; do
             setup_repo "$name" "$repo"
@@ -154,10 +193,15 @@ show_help() {
     echo "Available projects:"
     echo "  - tt-metal"
     echo "  - tt-forge (links to: $TT_FORGE_REPOS)"
+    echo "  - common   (link common skills globally to $GLOBAL_SKILLS_DIR only)"
+    echo ""
+    echo "Common skills are always linked globally to $GLOBAL_SKILLS_DIR."
+    echo "Project-specific skills, CLAUDE.md and settings.json are linked per repo."
     echo ""
     echo "Example:"
     echo "  ./setup.sh tt-metal"
     echo "  ./setup.sh tt-forge"
+    echo "  ./setup.sh common"
 }
 
 # Check if project is valid
@@ -187,6 +231,9 @@ fi
 echo "tt-claude Setup"
 echo "==============="
 echo ""
+
+# Common skills are always linked globally (works in any directory)
+link_common_global
 
 setup_project "$1"
 

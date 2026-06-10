@@ -154,9 +154,26 @@ Kernels coordinate through circular buffers in SRAM (1.5MB L1 per core). Data fl
 3. Check watcher logs at `generated/watcher/watcher.log`
 4. For hangs, use `./build/tools/watcher_dump --devices=<ids>`
 
-## Hardware Reset
+## Hardware Reset & Recovery
+
+If a TTNN test or program fails with a `RuntimeError` indicating the device is in
+a bad state (hang, NoC timeout, unrecoverable assertion, "device is wedged"),
+recover the device before retrying — re-attempting without recovery typically
+reproduces the same error.
 
 ```bash
-tt-smi -r 0        # Single card
-tt-smi -r 0,1,2,3  # T3000/QuietBox
+tt-smi -ls               # List devices and confirm PCI Dev IDs
+tt-smi -r <device_id>    # Reset, e.g. tt-smi -r 0  (use 0,1,2,3 for T3000/QuietBox)
 ```
+
+If `tt-smi -r` cannot clear the bad state, fall back to reflashing firmware with
+`tt-flash`. See the **`recovering-tt-hardware`** skill for the full escalation
+procedure (reset → firmware reflash), including how to obtain the matching
+`.fwbundle` and why you must reflash the *same* version rather than upgrading.
+
+## Git Workflow
+
+- **Do not create pull requests automatically.** Even when a plan or task list
+  includes "open PR" as a step, do not run `gh pr create` (or any equivalent)
+  without an explicit, in-the-moment instruction from the user. PR creation is
+  a visible action and stays a manual decision regardless of prior plan approval.

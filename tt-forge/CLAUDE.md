@@ -33,7 +33,6 @@ tt-forge is the DNN compiler for Tenstorrent hardware, using tt-xla, tt-onnx-fe 
 | `tt-forge-bringup` | Bring up new models on tt-forge. Use when adding a new model or running a model on TT hardware for the first time. |
 | `tt-forge-debug` | Debug compilation/execution errors across the tt-xla, tt-mlir, tt-metal stack. Use when errors occur during bringup or execution. |
 | `tt-forge-test` | Run tests and validate PCC/atol accuracy. Use after code changes to verify correctness. |
-| `tt-forge-review` | Review code changes for quality and consistency. Use after tests pass, before committing. |
 | `tt-forge-perf` | Measure model performance (latency, throughput, bottlenecks). Use to identify optimization opportunities. |
 | `tt-forge-optimize` | Implement performance optimizations in tt-mlir. Use after perf analysis identifies bottlenecks. |
 
@@ -56,9 +55,6 @@ tt-forge-optimize (implement)
         │
         ▼
 tt-forge-test → tt-forge-perf (iterate)
-        │
-        ▼ done?
-tt-forge-review (code review)
 ```
 
 ## Key Directories
