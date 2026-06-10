@@ -56,7 +56,8 @@ tt-agent-skills/
 │       ├── porting-models-to-ttnn/      # 7-step model bringup workflow
 │       ├── optimizing-ttnn-models/      # Performance optimization workflow
 │       ├── profiling-tt-metal/          # TTNN profile *capture* (tracy build, python -m tracy, memory SQLite)
-│       └── tt-metal-perf-case-studies/  # End-to-end perf optimization case studies
+│       ├── tt-metal-perf-case-studies/  # End-to-end perf optimization case studies
+│       └── serving-ttnn-with-vllm/      # Serve a TTNN model through vLLM
 └── tt-forge/
     ├── CLAUDE.md         # Project-specific Claude instructions
     └── skills/
@@ -116,9 +117,10 @@ Skills in `common/skills/` are shared across all projects and are linked globall
 | Skill | Description |
 |-------|-------------|
 | `porting-models-to-ttnn` | 7-step workflow for converting PyTorch models to TTNN |
-| `optimizing-ttnn-models` | Performance optimization (data formats, sharding, Metal Trace, multi-device) |
+| `optimizing-ttnn-models` | Performance optimization (data formats, sharding, Metal Trace, multi-device). LLM-specific refs: `llm-decoder-optimization.md` (matmul/precision tuning), `tensor-parallel-llm.md` (TP/EP), `metal-trace-debugging.md` (program-cache warmup), `datatype-sweep.md` (accuracy-gated precision) |
 | `profiling-tt-metal` | TTNN profile *capture*: Tracy build setup, `python -m tracy` (Performance/NoC), and TTNN Memory Reports (`full_graph_capture` → SQLite + SQL recipes). Analysis lives in `analyzing-tt-profiles` |
 | `tt-metal-perf-case-studies` | Worked end-to-end perf optimization case studies (profile → bottleneck → fix → verify) |
+| `serving-ttnn-with-vllm` | Serve a working TTNN model through vLLM: thin `generator_vllm.py` adapter, plugin registration, `run_vllm_server` readiness runner, async-decode / on-device-sampling serving optimization |
 
 ## tt-forge Skills
 

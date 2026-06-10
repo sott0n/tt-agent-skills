@@ -204,6 +204,14 @@ def test_format_change(device, torch_model, ttnn_model_bf8):
     assert_with_pcc(torch_output, ttnn.to_torch(ttnn_output), 0.99)
 ```
 
+## LLM decoders
+
+For decoder-specific precision/fidelity defaults (BF16 act/norms, BFP8
+weights+KV, BFP4 FF1/FF3, HiFi2/LoFi/HiFi4 pairing) and accuracy-gated
+full-model datatype frontier selection, see
+[llm-decoder-optimization.md](llm-decoder-optimization.md) and
+[datatype-sweep.md](datatype-sweep.md).
+
 ## Checklist
 
 - [ ] Weights converted to bfloat8_b where possible

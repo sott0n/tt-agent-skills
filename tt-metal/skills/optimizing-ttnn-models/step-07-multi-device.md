@@ -1,5 +1,12 @@
 # Step 7: Multi-Device Optimization
 
+> **LLM tensor/expert parallelism?** This step covers **data
+> parallelism** (replicate weights, shard the batch) — the right tool
+> for CNNs and models that fit on one chip. For splitting a single
+> decoder across chips (WQKV/WO sharding, distributed RMSNorm, MoE
+> expert parallelism, fabric config, 2D mesh planning), see
+> [tensor-parallel-llm.md](tensor-parallel-llm.md).
+
 ## Objective
 
 Scale models across multiple Tenstorrent devices for increased throughput.

@@ -5,6 +5,7 @@
 - Device Memory Considerations
 - LLM-Specific Architecture (Attention, MLP, KV Cache)
 - Systematic Component-wise Bring-Up
+- Decoder Correctness: Defaults & Gotchas
 - Performance Optimization (Prefill vs Decode)
 - Multi-Device Scaling (Tensor/Pipeline Parallelism)
 - Checklist
@@ -256,6 +257,18 @@ def prefill(input_ids, *, parameters, config):
     return hidden_states
 ```
 
+## Decoder Correctness: Defaults & Gotchas
+
+Getting the decoder running is not the same as making it correct and
+shippable. The defaults and gotchas that decide that — acceptance bar
+(**PCC ≥ 0.995** prefill/decode with ≥1 real-weight test), TTNN
+correctness defaults, **paged KV cache**, prefill/decode shapes +
+full-sequence-length testing, synthetic-weights-from-stats, MoE
+active-expert path, component-split PCC debugging, and using **Watcher**
+(`TT_METAL_WATCHER=10`) as a done condition — are collected in
+[`llm-decoder-correctness.md`](llm-decoder-correctness.md). Read it before
+declaring a decoder done.
+
 ## Performance Optimization
 
 After functional bring-up, optimize performance:
@@ -296,6 +309,10 @@ For models too large for a single device:
 - Distribute single operations across devices
 - Required for models like Falcon 40B
 
+For the TP/EP implementation playbook (WQKV/WO sharding, distributed
+RMSNorm, MoE expert parallelism, fabric config, 2D mesh planning), see
+`optimizing-ttnn-models/tensor-parallel-llm.md`.
+
 See: [Multi-Device Reference](https://github.com/tenstorrent/tt-metal/blob/main/tech_reports/LLMs/llms.md#33-multi-device)
 
 ## Reference Documentation
@@ -314,5 +331,10 @@ See: [Multi-Device Reference](https://github.com/tenstorrent/tt-metal/blob/main/
 - [ ] Token generation accuracy verified
 - [ ] Prefill implementation completed
 - [ ] End-to-end model running
+- [ ] Paged KV cache is the final prefill/decode path (tensor current positions)
+- [ ] Prefill + decode tested at the FULL supported sequence length (or capacity probe recorded)
+- [ ] Prefill + decode PCC ≥ 0.995, with ≥1 real-weight test passing
+- [ ] No host fallback (torch / from_torch / to_torch) in the runtime path
+- [ ] Watcher-clean run (`TT_METAL_WATCHER=10`)
 - [ ] Performance optimizations applied (optional)
 - [ ] Multi-device scaling implemented (if needed)

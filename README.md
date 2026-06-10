@@ -51,6 +51,9 @@ Example output:
 |-------|-------------|
 | `porting-models-to-ttnn` | Workflow for converting PyTorch models to TTNN |
 | `optimizing-ttnn-models` | Performance optimization for TTNN models |
+| `profiling-tt-metal` | Capture TTNN/TT-Metal profiles (Tracy, NoC, Memory Reports) |
+| `tt-metal-perf-case-studies` | Worked end-to-end perf optimization case studies |
+| `serving-ttnn-with-vllm` | Serve a TTNN model through vLLM (adapter, plugin, readiness runner) |
 
 ### tt-forge
 

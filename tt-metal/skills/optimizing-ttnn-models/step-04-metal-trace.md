@@ -136,6 +136,12 @@ ttnn.execute_trace(device, tid, cq_id=0, blocking=False)
 3. **Program cache required**: Compile operations before capture
 4. **Fixed addresses**: Input/output tensor addresses must match
 
+> A program-cache **miss** inside capture aborts with `Writes are not
+> supported during trace capture`. Warming every op with the exact
+> signature, splitting the generator decode path, multi-chip/CCL traces,
+> and debugging stale-input/repeat-fail bugs are covered in
+> [metal-trace-debugging.md](metal-trace-debugging.md).
+
 ## Determining Trace Region Size
 
 If trace capture fails:

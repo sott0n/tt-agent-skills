@@ -213,6 +213,7 @@ Claude response:
 │
 ├── # Model-Type Specific Guides
 ├── llm-model-bringup.md                  # LLM-specific bringup (Llama, BERT, etc.)
+├── llm-decoder-correctness.md            # LLM decoder defaults & gotchas (paged KV cache, shapes, synthetic weights, watcher)
 ├── cnn-model-bringup.md                  # CNN-specific bringup (ResNet, YOLO, etc.)
 │
 ├── # Step-by-Step Workflow

@@ -25,6 +25,7 @@ Before running TTNN programs, see the project CLAUDE.md for Build Commands, Pyth
 
 **LLM (transformers, attention-based)?**
 → Focus on: Data formats (Step 1), Metal Trace (Step 4), Multi-CQ (Step 5)
+→ Decoder-specific matmul / precision / fidelity tuning: [llm-decoder-optimization.md](llm-decoder-optimization.md)
 
 **CNN (convolutions, image models)?**
 → Focus on: Sharding (Step 3), Conv2d optimization (Step 6), act_block_h tuning
@@ -113,13 +114,17 @@ Claude response:
 ├── SKILL.md                        # This file
 ├── key-concepts.md                 # Data formats, layouts, memory, sharding, math fidelity
 ├── quick-reference.md              # Code examples for common patterns
+├── llm-decoder-optimization.md     # LLM decoder matmul/precision/fidelity tuning + advice policy
+├── datatype-sweep.md               # Full-model accuracy-gated datatype frontier selection (top-1/top-5)
 ├── step-01-data-formats.md         # Data format optimization
 ├── step-02-tensor-layouts.md       # Tensor layout optimization
 ├── step-03-memory-sharding.md      # Memory, sharding, double buffering
-├── step-04-metal-trace.md          # Metal Trace guide
+├── step-04-metal-trace.md          # Metal Trace guide (capture/replay APIs + patterns)
+├── metal-trace-debugging.md        # Program-cache warmup, generator split, trace failure debugging
 ├── step-05-multi-cq.md             # Multiple command queues
 ├── step-06-conv2d-optimization.md  # Conv2d tuning (vision models)
-└── step-07-multi-device.md         # Multi-device scaling
+├── step-07-multi-device.md         # Multi-device scaling (data parallel)
+└── tensor-parallel-llm.md          # LLM tensor/expert parallelism (TP/EP, distributed RMSNorm, fabric config)
 ```
 
 ## Reference
