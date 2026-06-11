@@ -19,6 +19,12 @@ TT_FORGE_REPOS="tt-forge-models tt-xla tt-onnx-fe tt-mlir"
 # Common skills are linked globally so they work in any directory
 GLOBAL_SKILLS_DIR="$HOME/.claude/skills"
 
+# DeepWiki MCP server (https://deepwiki.com) — queried per-repo via repoName
+# (e.g. tenstorrent/tt-metal). Registered once at user scope so it is available
+# in any directory, matching the "common skills -> global" philosophy.
+DEEPWIKI_MCP_NAME="deepwiki"
+DEEPWIKI_MCP_URL="https://mcp.deepwiki.com/mcp"
+
 # Find project directory under HOME (max depth 2)
 find_project() {
     local name=$1
@@ -67,6 +73,28 @@ link_common_global() {
     link_skills "$common_dir/skills" "$GLOBAL_SKILLS_DIR" "skills(common)"
     echo ""
     echo "  Linked to: $GLOBAL_SKILLS_DIR"
+    echo ""
+}
+
+# Register the DeepWiki MCP server globally (user scope), idempotently.
+register_deepwiki_mcp() {
+    echo "[deepwiki MCP -> global]"
+
+    if ! command -v claude >/dev/null 2>&1; then
+        echo "  [SKIP] 'claude' CLI not on PATH; register manually with:"
+        echo "         claude mcp add -s user -t http $DEEPWIKI_MCP_NAME $DEEPWIKI_MCP_URL"
+        echo ""
+        return
+    fi
+
+    if claude mcp get "$DEEPWIKI_MCP_NAME" >/dev/null 2>&1; then
+        echo "  [OK]   $DEEPWIKI_MCP_NAME already registered"
+    elif claude mcp add -s user -t http "$DEEPWIKI_MCP_NAME" "$DEEPWIKI_MCP_URL" >/dev/null 2>&1; then
+        echo "  [DONE] $DEEPWIKI_MCP_NAME -> $DEEPWIKI_MCP_URL (user scope)"
+    else
+        echo "  [WARN] failed to register $DEEPWIKI_MCP_NAME; add manually with:"
+        echo "         claude mcp add -s user -t http $DEEPWIKI_MCP_NAME $DEEPWIKI_MCP_URL"
+    fi
     echo ""
 }
 
@@ -196,6 +224,7 @@ show_help() {
     echo "  - common   (link common skills globally to $GLOBAL_SKILLS_DIR only)"
     echo ""
     echo "Common skills are always linked globally to $GLOBAL_SKILLS_DIR."
+    echo "The DeepWiki MCP server is always registered globally (user scope)."
     echo "Project-specific skills, CLAUDE.md and settings.json are linked per repo."
     echo ""
     echo "Example:"
@@ -234,6 +263,9 @@ echo ""
 
 # Common skills are always linked globally (works in any directory)
 link_common_global
+
+# DeepWiki MCP is always registered globally (works in any directory)
+register_deepwiki_mcp
 
 setup_project "$1"
 

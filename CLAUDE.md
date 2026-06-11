@@ -29,10 +29,19 @@ The setup uses a hybrid layout so common skills work everywhere while project-sp
 
 The setup script:
 1. Links `common/skills` globally to `~/.claude/skills/`
-2. Searches for target repositories under `$HOME` (max depth 2)
-3. If not found, offers to clone from GitHub
-4. Creates symlinks in each repository's `.claude/` directory (project skills, CLAUDE.md, settings.json)
-5. Removes any stale per-repo common skill symlinks left by older setups (common is now global)
+2. Registers the DeepWiki MCP server globally at user scope (idempotent; via `claude mcp add -s user`)
+3. Searches for target repositories under `$HOME` (max depth 2)
+4. If not found, offers to clone from GitHub
+5. Creates symlinks in each repository's `.claude/` directory (project skills, CLAUDE.md, settings.json)
+6. Removes any stale per-repo common skill symlinks left by older setups (common is now global)
+
+### DeepWiki MCP (global)
+
+Like common skills, the [DeepWiki](https://deepwiki.com) MCP server is registered once at
+**user scope** (`~/.claude.json`) so it works in any directory. It is a single server
+(`https://mcp.deepwiki.com/mcp`, no auth) queried per-repo via a `repoName` parameter
+(e.g. `tenstorrent/tt-metal`) — there is no per-repo registration. The list of relevant
+Tenstorrent repos and usage guidance lives in the `querying-tt-deepwiki` common skill.
 
 Note: `tt-forge` links configs to all related repositories: tt-forge-models, tt-xla, tt-onnx-fe, tt-mlir
 
@@ -46,10 +55,10 @@ tt-agent-skills/
 │   └── settings.local.json
 ├── common/
 │   └── skills/           # Skills shared across all projects
-│       ├── using-github/ # GitHub operations via gh CLI
 │       ├── using-mgrep/  # Semantic search via mgrep CLI
 │       ├── recovering-tt-hardware/ # HW reset + firmware reflash recovery
-│       └── analyzing-tt-profiles/  # Front-end-agnostic profile analysis (CSV/NoC JSON)
+│       ├── analyzing-tt-profiles/  # Front-end-agnostic profile analysis (CSV/NoC JSON)
+│       └── querying-tt-deepwiki/   # Query repo docs via DeepWiki MCP
 ├── tt-metal/
 │   ├── CLAUDE.md         # Project-specific Claude instructions
 │   └── skills/
@@ -107,10 +116,10 @@ Skills in `common/skills/` are shared across all projects and are linked globall
 
 | Skill | Description |
 |-------|-------------|
-| `using-github` | GitHub operations via gh CLI (PRs, commits, issues, git blame) |
 | `using-mgrep` | Semantic code search via mgrep CLI (natural language queries) |
 | `recovering-tt-hardware` | Recover wedged TT hardware: tt-smi reset → tt-flash firmware reflash fallback |
 | `analyzing-tt-profiles` | Front-end-agnostic profile *analysis*: `ops_perf_results*.csv` columns, `tt-perf-report` CLI, Python recipes, NoC JSON, pitfalls. Same CSV from `python -m tracy` (TTNN) or `ttrt perf` (tt-forge) |
+| `querying-tt-deepwiki` | Query Tenstorrent repo docs via the DeepWiki MCP server (`read_wiki_structure` / `read_wiki_contents` / `ask_question`, `repoName: tenstorrent/<repo>`). Lists the 10 target repos and when to use DeepWiki vs. reading source |
 
 ## tt-metal Skills
 

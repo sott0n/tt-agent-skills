@@ -32,9 +32,11 @@ cd tt-agent-skills
 ```
 
 The setup script will:
-1. Search for the project under `$HOME` (max depth 2)
-2. If not found, offer to clone it from GitHub
-3. Create symlinks in the project's `.claude/` directory
+1. Link common skills globally to `~/.claude/skills/`
+2. Register the DeepWiki MCP server globally (user scope), so repo docs are queryable in any directory
+3. Search for the project under `$HOME` (max depth 2)
+4. If not found, offer to clone it from GitHub
+5. Create symlinks in the project's `.claude/` directory
 
 Example output:
 ```
@@ -44,6 +46,15 @@ Example output:
 ```
 
 ## Skills
+
+### common (global)
+
+| Skill | Description |
+|-------|-------------|
+| `using-mgrep` | Semantic code search via mgrep CLI |
+| `recovering-tt-hardware` | Recover wedged TT hardware (tt-smi reset → tt-flash reflash) |
+| `analyzing-tt-profiles` | Front-end-agnostic profile analysis (CSV / NoC JSON) |
+| `querying-tt-deepwiki` | Query Tenstorrent repo docs via the DeepWiki MCP server |
 
 ### tt-metal
 
