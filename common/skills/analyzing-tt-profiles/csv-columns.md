@@ -2,44 +2,58 @@
 
 ## Objective
 
-Know which columns to trust, which are inflated by instrumentation,
-and how to read shape / config info from `ATTRIBUTES`.
+Know which columns to trust, which are inflated by instrumentation, and
+how to read per-op shape / layout / dtype / memory and the perf-model
+roofline directly from columns (no `ATTRIBUTES` parsing needed for shapes).
 
-## Full column list (current order)
+## Full column list (v2.1 format — ~120 columns)
+
+Don't index by number — header order shifts across releases and the
+modern CSV is wide (~120 cols). Match by name. The columns cluster into
+groups:
 
 ```
-1.  OP CODE                              # e.g. MatmulDeviceOperation
-2.  OP TYPE                              # tt_dnn_device / tt_metal_l1_to_l1 / ...
-3.  GLOBAL CALL COUNT                    # monotonically increasing op index
-4.  DEVICE ID
-5.  ATTRIBUTES                           # op-specific config (long string)
-6.  MATH FIDELITY                        # LoFi / HiFi2 / HiFi3 / HiFi4
-7.  CORE COUNT                           # cores the op was dispatched on
-8.  PARALLELIZATION STRATEGY             # e.g. "Width", "1D" — not always populated
-9.  HOST START TS                        # ns since profiler init
-10. HOST END TS
-11. HOST DURATION [ns]                   # = HOST END - HOST START
-12. DEVICE FW START CYCLE
-13. DEVICE FW END CYCLE
-14. OP TO OP LATENCY [ns]                # device-side gap N→N+1; INFLATED by profiler
-15. OP TO OP LATENCY BR/NRISC START [ns]
-16. DEVICE FW DURATION [ns]
-17. DEVICE KERNEL DURATION [ns]          # the real device-side work for this op
-18. DEVICE KERNEL DURATION DM START [ns]
-19. DEVICE KERNEL DURATION PER CORE MIN [ns]
-20. DEVICE KERNEL DURATION PER CORE MAX [ns]
-21. DEVICE KERNEL DURATION PER CORE AVG [ns]
-22. DEVICE KERNEL FIRST TO LAST START [ns]
-23. DEVICE BRISC KERNEL DURATION [ns]
-24. DEVICE NCRISC KERNEL DURATION [ns]
-25. DEVICE TRISC0 KERNEL DURATION [ns]
-26. DEVICE TRISC1 KERNEL DURATION [ns]
-27. DEVICE TRISC2 KERNEL DURATION [ns]
-28. DEVICE ERISC KERNEL DURATION [ns]
-29. DEVICE COMPUTE CB WAIT FRONT [ns]
-30. DEVICE COMPUTE CB RESERVE BACK [ns]
-... (more per-RISC and CB-event columns follow)
+IDENTITY / CONFIG
+  OP CODE, OP TYPE, GLOBAL CALL COUNT, DEVICE ID, DEVICE ARCH,
+  ATTRIBUTES, MATH FIDELITY, CORE COUNT, AVAILABLE WORKER CORE COUNT,
+  SUB DEVICE ID, PARALLELIZATION STRATEGY
+
+HOST TIMING
+  HOST START TS, HOST END TS, HOST DURATION [ns]
+
+DEVICE TIMING  (the load-bearing block)
+  DEVICE FW START/END CYCLE, OP TO OP LATENCY [ns] (INFLATED — see below),
+  DEVICE FW DURATION [ns], DEVICE KERNEL DURATION [ns]  <- trust this,
+  DEVICE KERNEL DURATION PER CORE MIN/MAX/AVG [ns]  <- per-core skew,
+  DEVICE {BRISC,NCRISC,TRISC0,TRISC1,TRISC2,ERISC} KERNEL DURATION [ns],
+  DEVICE COMPUTE CB WAIT FRONT / RESERVE BACK [ns]  <- data-starvation,
+  DISPATCH TOTAL CQ CMD OP TIME / GO SEND WAIT TIME [ns]
+
+TENSOR SHAPES / FORMATS  (first-class columns — DON'T parse ATTRIBUTES for these)
+  INPUT_<n>_{W,Z,Y,X}_PAD[LOGICAL]   for n = 0..5   (padded[logical] dims)
+  INPUT_<n>_LAYOUT     (TILE / ROW_MAJOR)
+  INPUT_<n>_DATATYPE   (BFLOAT16 / BFLOAT8_B / ...)
+  INPUT_<n>_MEMORY     (DEV_<k>_DRAM_INTERLEAVED / DEV_<k>_L1_* / ...)
+  OUTPUT_<n>_*         same fields, n = 0..1
+
+KERNEL IDENTITY / CACHE
+  COMPUTE/DATA MOVEMENT KERNEL SOURCE + HASH, PROGRAM HASH,
+  PROGRAM CACHE HIT  <- False = this op compiled on this call (cold)
+
+PERF-MODEL ROOFLINE  (per-op, not just matmul)
+  PM IDEAL [ns], PM COMPUTE [ns], PM BANDWIDTH [ns],
+  PM FPU UTIL (%)   <- ~0 means NOT compute-bound,
+  NOC UTIL (%), DRAM BW UTIL (%), MULTICAST NOC UTIL (%),
+  ETH BW UTIL (%), NPE CONG IMPACT (%)
 ```
+
+**⚠️ Which roofline columns are populated depends on the capture.** In a
+plain `python -m tracy -p -r` run, only `PM IDEAL` and `PM FPU UTIL (%)`
+are filled; `DRAM BW UTIL (%)`, `NOC UTIL (%)`, and the `CB WAIT/RESERVE`
+columns are **empty** — they're computed by **tt-npe**, which only runs
+with `--collect-noc-traces` + `--analyze-noc-traces` (see
+`noc-reports.md`). To confirm a *memory/NoC-bandwidth* bound you usually
+need a NoC capture, not the perf CSV alone.
 
 ## Trust matrix
 
@@ -96,13 +110,38 @@ For matmul, useful fields to grep for:
 
 - `'bcast_batch'` — batching mode
 - `'compute_kernel_config'` — fidelity + flags (`packer_l1_acc`, `fp32_dest_acc_en`)
-- shape information embedded in tensor specs
+
+**Shapes are no longer in `ATTRIBUTES`** — read the `INPUT_<n>_*_PAD[LOGICAL]`
+/ `INPUT_<n>_LAYOUT` / `_DATATYPE` / `_MEMORY` columns directly.
+
+## Classifying a NON-matmul op (what `tt-perf-report` won't do)
+
+`tt-perf-report`'s `Bound` column is **matmul-only** (plus `HOST` for
+`(torch)` fallbacks). For the ops that often dominate a model —
+`BinaryNg`, `ReshapeView`, `Permute`, `Tilize/Untilize` — it gives no
+bound and no advice. Classify them yourself from columns:
+
+| Read | Means |
+|---|---|
+| `PM FPU UTIL (%)` ≈ 0 | **Not compute-bound** — the FPU is idle; cost is data movement, not math. |
+| `INPUT_<n>_MEMORY` = `*_DRAM_INTERLEAVED` | Operand lives in DRAM → every touch is a DRAM round-trip. Moving it to L1 / fusing to avoid the round-trip is the lever. |
+| large `INPUT/OUTPUT_*_PAD[LOGICAL]` (e.g. 10000×256) | Big tensor → memory-bandwidth-bound; cost scales with bytes moved. |
+| `INPUT_<n>_LAYOUT` = `ROW_MAJOR` on a compute op | Forces a tilize somewhere; layout churn. |
+| `PROGRAM CACHE HIT` = `False` on a warm iter | This instance recompiled — you're measuring cold, re-check the forward split. |
+| `DEVICE KERNEL DURATION PER CORE MAX ≫ MIN` | Per-core skew (bad sharding), not raw op cost. |
+
+So: a `BinaryNg` with `PM FPU UTIL ≈ 0`, `DRAM_INTERLEAVED` inputs, and a
+large shape is **DRAM-bandwidth-bound** — the fix is layout/placement
+(L1, sharding, fusion), not a faster compute kernel. To *quantify* the
+bandwidth saturation you need `DRAM BW UTIL (%)`, which is only populated
+in a NoC capture (see `noc-reports.md`).
 
 Quick filter for "all matmuls with HiFi2":
 
 ```bash
-awk -F, '$1=="MatmulDeviceOperation" && $5 ~ /HiFi2/' ops_perf_results_*.csv | wc -l
+awk -F, '$1=="MatmulDeviceOperation" && $7 ~ /HiFi2/' ops_perf_results_*.csv | wc -l
 ```
+(`$7` = `MATH FIDELITY` in v2.1; verify with `head -1 csv | tr ',' '\n' | nl | grep FIDELITY`.)
 
 ## How to spot bottleneck patterns from columns
 

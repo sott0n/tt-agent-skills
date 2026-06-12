@@ -53,6 +53,18 @@ tt-perf-report ops_perf_results_*.csv --no-advice
 tt-perf-report ops_perf_results_*.csv --min-percentage 1.0
 ```
 
+### Aggregate the Stacked report (`--group-by`)
+
+```bash
+tt-perf-report ops_perf_results_*.csv --group-by op       # by op type (default-ish)
+tt-perf-report ops_perf_results_*.csv --group-by memory   # by input-0 layout/placement
+tt-perf-report ops_perf_results_*.csv --group-by category # compute / data-movement / tensor-manip
+```
+
+`--group-by op` is the go-to for "where does device time go." `--group-by
+memory` buckets by where input 0 lives (L1 vs DRAM vs sharded) — useful
+when you suspect layout/placement (not compute) is the cost.
+
 ### Per-phase analysis with signposts
 
 If the workload was instrumented with Tracy signposts (e.g.
@@ -100,13 +112,18 @@ tt-perf-report ops_perf_results_*.csv --no-color > perf_report.txt
 ## How to use signposts
 
 `tt-perf-report` reads Tracy signposts embedded by the model code.
-A signpost is created with `tracy.signpost(name)`:
+The API is a **plain function call** `tracy.signpost(header, message=None)`
+(verified in `tools/tracy/__init__.py`) — there is **no** context-manager
+form like `scoped_signpost`. It emits a `TT_SIGNPOST` marker via
+`ttnn.tracy_message` and is a no-op cost-wise when tracy isn't capturing:
 
 ```python
-# In Python model code
-import tracy
-with tracy.scoped_signpost("detr_decoder"):
-    out = detr_decoder(...)
+# In Python model code — mark each phase / forward boundary
+from tracy import signpost
+signpost("detr_decoder")          # start-of-phase marker
+out = detr_decoder(...)
+# multi-forward profiling: signpost(f"forward_{i+1}") at the top of each iter,
+# then slice the warm one with --start-signpost forward_2
 ```
 
 Without signposts, the full trace is analyzed (use `--ignore-signposts`
@@ -122,7 +139,8 @@ boundary.
 | Need | Tool |
 |---|---|
 | Per-op aggregate, totals, % share | `tt-perf-report` |
-| Memory-bound / compute-bound classification | `tt-perf-report` |
+| Bound classification **for matmul/conv** | `tt-perf-report` |
+| Bound classification for **non-matmul** ops (BinaryNg/Reshape/…) | raw columns (`csv-columns.md`) |
 | Phase isolation via signposts | `tt-perf-report` |
 | Op-id range slice | `tt-perf-report` |
 | Multi-machine trace merging | `tt-perf-report` |
@@ -140,20 +158,36 @@ note at the top of that file). As they land in `tt-perf-report`, the
 
 ## Reading the output
 
-A typical row looks like:
+Two sections print: a **per-op table** (one row per op, columns
+`ID | Total % | Bound | OP Code | Device | Device Time | Op-to-Op Gap |
+Cores | DRAM | DRAM % | FLOPs | FLOPs % | Math Fidelity`) and a
+**Stacked report** (the `--group-by` aggregation: per op-type
+`Device Time Sum`, `Op Count`, category, FLOPs stats).
 
-```
-ID | OP CODE                  | Device µs | Host µs | Cores | DRAM % | Compute % | Bound
- 7 | MatmulDeviceOperation    |    5558.2 |    12.3 |    8  |   2.1  |    7.4    | both?
-```
+For ranking where device time goes, read the **Stacked report's
+`Device Time Sum`** — it's pure device kernel time.
 
-Interpretation:
-- `Cores 8` — running on 8 of 130 cores. Look at `ATTRIBUTES` in the
-  raw CSV to find the `program_config` that caused this (see
-  `csv-columns.md`).
-- `Bound: both?` — neither DRAM nor compute is saturated, which means
-  the op is doing far less work than it could. Confirms the
-  under-parallelization hypothesis.
+### Interpretation gotchas (verified against the tool source)
+
+1. **The per-op table's `Total %` = `Device Time` + `Op-to-Op Gap`.**
+   It blends in the profiler-inflated gap, so it over-ranks ops that sat
+   behind a host stall. For a *pure device-cost* ranking use the Stacked
+   report `Device Time Sum`, not `Total %`.
+2. **`Bound` is matmul-only** (plus `HOST` for `(torch)` fallbacks).
+   `BinaryNg` / `ReshapeView` / `Permute` etc. get a blank `Bound` and no
+   advice — classify them from raw columns (`csv-columns.md` →
+   "Classifying a NON-matmul op").
+3. **The "High Op-to-Op Gap → tracing could save X µs" advice is
+   overstated.** It's computed from the inflated `Op-to-Op Gap`; under
+   the profiler that gap is not real wall time. Treat it as "these ops
+   had host stalls," not as a wall-time savings estimate.
+4. **The `Cores` coloring (red <10, green =64) is Wormhole-centric.** On
+   Blackhole (130 worker cores) an op on 130 cores is fully parallel but
+   isn't colored green, and "64" isn't special. Judge against
+   `AVAILABLE WORKER CORE COUNT`, not the color.
+5. The detail-section footer may print the **whole-file** op count even
+   under `--id-range` (display quirk); the Stacked table and time sums
+   *do* respect the filter — trust those.
 
 When `tt-perf-report` flags an op like this, drop down to Recipe 2/3
 in `analysis-recipes.md` for the detailed per-instance breakdown.
