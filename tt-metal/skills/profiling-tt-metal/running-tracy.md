@@ -62,9 +62,7 @@ passed through unchanged:
 ```bash
 TT_DCN_DEVICE=1 TT_UNIAD_TRACE_DISABLE=1 TT_UNIAD_WARM_ITERS=0 \
 TT_METAL_DEVICE_PROFILER=1 \
-TT_METAL_PROFILER_MID_RUN_DUMP=1 \
-TT_PROFILER_OP_SUPPORT_COUNT=400 \
-  python -m tracy -p -r -n uniad_full -m pytest \
+  python -m tracy -p -r --op-support-count 8000 -n uniad_full -m pytest \
     models/experimental/uniad/tests/pcc/test_ttnn_uniad.py::test_uniad -svv
 ```
 
@@ -73,8 +71,8 @@ Key profiler-specific env vars:
 | Env var | Effect |
 |---|---|
 | `TT_METAL_DEVICE_PROFILER=1` | Force device profiler on (usually auto when `python -m tracy` runs) |
-| `TT_METAL_PROFILER_MID_RUN_DUMP=1` | Dump partial CSV mid-run; helpful when test crashes |
-| `TT_PROFILER_OP_SUPPORT_COUNT=<N>` | Raise device-side op buffer; default ~200, raise to 400+ for big models |
+| `--op-support-count <N>` (tracy **flag**, not env) | Sizes the per-program DRAM profiler buffer (`TT_METAL_PROFILER_PROGRAM_SUPPORT_COUNT`, **default 1000**). Set **N > total programs** = device-ops × forwards (e.g. 8000 for a ~5200-op run); too small → dropped markers → `-r` join crash. Changing it forces a one-time kernel recompile. ⚠️ The env var `TT_PROFILER_OP_SUPPORT_COUNT` is **read by nothing** — use the flag. |
+| `TT_METAL_PROFILER_MID_RUN_DUMP=1` | Dump partial CSV mid-run; helpful when a test crashes. **Not** a substitute for `--op-support-count` — size the buffer instead. |
 
 ## Critical: disable Metal Trace while profiling
 
@@ -89,8 +87,18 @@ do not coexist — combining them produces a fatal
 
 ## Cold vs warm path
 
-The first forward pass triggers JIT compilation of ops. For a useful
-profile, *the cold pass should not be the only one*. Two patterns:
+The first forward pass triggers JIT compilation of ops. **Budget for it
+when planning:** the first profiled run pays full JIT (can be minutes —
+e.g. 312 s call vs 23 s once kernels are disk-cached). Two consequences:
+
+- **Pre-warm for a clean warm capture.** Run the workload **once without
+  the profiler** first (populates the on-disk kernel cache), *then* the
+  profiled run is all-warm — cleaner than padding with extra warm iters
+  (which only bloats the logs). If you skip the pre-warm, the first
+  forward in the capture is cold and must be split off (below).
+- For a useful profile, *the cold pass should not be the only one*.
+
+Two patterns:
 
 ### Pattern A — single warm pass
 
@@ -107,6 +115,30 @@ Cheaper if you can't easily configure warm iters. The first ~100 ops
 in the CSV will have inflated `HOST DURATION` (JIT compile time).
 Filter them out in analysis. See the `analyzing-tt-profiles` skill
 (`analysis-recipes.md`).
+
+## Splitting forwards in the CSV
+
+When you run N forwards (cold + warm iters) the CSV holds **all of them
+concatenated** — isolate the warm one or your totals double-count. There
+is no boundary marker (`GLOBAL CALL COUNT` is a smooth per-op counter).
+The boundary is the **single largest `OP TO OP LATENCY` gap** (the
+inter-forward host stall: input deepcopy + re-upload), much larger than
+any intra-forward gap on a warm run. Then slice with
+`tt-perf-report <csv> --id-range <warmStartID>-` and confirm the per-op
+counts sum to the warm op count. (`OP TO OP LATENCY` is for finding the
+boundary only — under the profiler it's host-inflated, not a wall-time
+metric; trust `DEVICE KERNEL DURATION`.) The cold forward has *more* ops
+(one-time setup: conv-weight prep, ref points, lidar2img), so the warm
+forward is the shorter tail.
+
+## If `-r` crashes with `Device data missing: Op <N>`
+
+Your `--op-support-count` was too small (default 1000), so the device
+profiler dropped markers and the host↔device join can't match them. **Fix
+it at the source: re-run with a larger `--op-support-count`** (see the env
+table above) — don't try to salvage the truncated logs. To confirm a
+clean capture afterward, check the CSV op-row count equals
+`grep -c TT_DNN_DEVICE_OP generated/profiler/.logs/tracy_ops_data.csv`.
 
 ## Per-module profiling for large models
 
@@ -163,6 +195,8 @@ order. Verify with `head -1 $CSV | tr ',' '\n' | nl | grep KERNEL`.)
 
 - [ ] `tt-smi -r <device>` before each run
 - [ ] Trace disabled in the workload
+- [ ] `--op-support-count N` set with N > total programs (default 1000 drops ops on big models)
+- [ ] (Optional) pre-warm once without the profiler for an all-warm capture
 - [ ] Meaningful `-n <run_name>`
-- [ ] If model is large: per-module profile or raise `TT_PROFILER_OP_SUPPORT_COUNT`
-- [ ] Confirm CSV row count matches expected op count
+- [ ] **Verify completeness:** CSV op-row count == `grep -c TT_DNN_DEVICE_OP .logs/tracy_ops_data.csv` (short = dropped ops → raise `--op-support-count`)
+- [ ] Multi-forward capture: split on the largest OP-TO-OP gap, slice with `tt-perf-report --id-range`

@@ -75,8 +75,12 @@ but hands the analysis to a human.
 ## Quick capture cheatsheet
 
 ```bash
-# Performance report (warm path, trace disabled)
-python -m tracy -p -r -n <run_name> -m pytest <test_path>::<test_func> -svv
+# Performance report (warm path, trace disabled).
+# --op-support-count N: N > total programs (device-ops × forwards). Default 1000
+# is too small for big models → dropped markers → `-r` join crash. Then analyze
+# the CSV with `tt-perf-report <csv> --group-by op` (analyzing-tt-profiles skill).
+python -m tracy -p -r --op-support-count 8000 \
+  -n <run_name> -m pytest <test_path>::<test_func> -svv
 
 # NoC report (experimental) — keep forward_passes ≤ 1
 python -m tracy --collect-noc-traces --op-support-count 10000 -p -r \
@@ -103,9 +107,22 @@ profiling; `tracy-build-setup.md` for the one-time build; and
 - **Profiler + Metal Trace = fatal.** Disable trace before profiling
   (`ttnn.begin_trace_capture` / `execute_trace` crash with
   `Event Synchronization`). See `running-tracy.md`.
-- **DRAM ring buffer overflow drops ops silently** on high-frequency
-  workloads — raise `TT_PROFILER_OP_SUPPORT_COUNT` or profile per
-  module.
+- **Big model → size `--op-support-count` or the profiler silently drops
+  ops.** The device profiler's per-program DRAM buffer holds
+  `--op-support-count` programs (**default 1000**, sets
+  `TT_METAL_PROFILER_PROGRAM_SUPPORT_COUNT`). Exceed it and markers drop
+  → the `-r` host↔device join aborts with **`Device data missing: Op
+  <N>`** and writes no CSV. **Fix: pass `--op-support-count N` with N >
+  total programs** (≈ device-ops × forwards; e.g. 8000 for a ~5200-op
+  run). It's a kernel compile define, so the first run after changing it
+  recompiles (cold); the next is warm. (NB: `TT_PROFILER_OP_SUPPORT_COUNT`
+  as an *env var* is a no-op — use the flag.) See `running-tracy.md`.
+- **Always verify completeness before trusting a breakdown.** CSV op-row
+  count must equal `grep -c TT_DNN_DEVICE_OP
+  generated/profiler/.logs/tracy_ops_data.csv`. A short CSV = dropped ops
+  (raise `--op-support-count`). Dropped ops are not random — they skew
+  toward whatever ran near a buffer-wrap, so a truncated capture can
+  badly misrank op types.
 - **Legacy `TTNN_CONFIG_OVERRIDES` memory path produces no SQLite** —
   use `full_graph_capture`. See `memory-reports.md`.
 - **`full_graph_capture` autouse pytest fixture segfaults** — inline
